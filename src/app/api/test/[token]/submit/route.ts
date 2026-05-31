@@ -1,0 +1,161 @@
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { withAuth } from "@/lib/auth/withAuth"
+import { z } from "zod"
+
+const schema = z.object({
+  submissionId: z.string(),
+  problemId: z.string(),
+  code: z.string().min(1),
+  language: z.enum(["JAVASCRIPT", "TYPESCRIPT", "PYTHON", "JAVA", "CPP"]),
+})
+
+// Judge0 language IDs
+const LANGUAGE_IDS: Record<string, number> = {
+  JAVASCRIPT: 63,
+  TYPESCRIPT: 74,
+  PYTHON: 71,
+  JAVA: 62,
+  CPP: 54,
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+async function executeCode(
+  code: string,
+  language: string,
+  input: string,
+  expectedOutput: string
+): Promise<{ passed: boolean; actual: string; error?: string }> {
+  // submit to Judge0
+  const submitRes = await fetch(
+    `${process.env.JUDGE0_API_URL}/submissions?base64_encoded=false&wait=false`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-RapidAPI-Key": process.env.JUDGE0_API_KEY!,
+        "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
+      },
+      body: JSON.stringify({
+        source_code: code,
+        language_id: LANGUAGE_IDS[language],
+        stdin: input,
+        expected_output: expectedOutput,
+      }),
+    }
+  )
+
+  const { token } = await submitRes.json()
+
+  // poll for result
+  let result = null
+  for (let i = 0; i < 10; i++) {
+    await sleep(1000)
+    const resultRes = await fetch(
+      `${process.env.JUDGE0_API_URL}/submissions/${token}?base64_encoded=false`,
+      {
+        headers: {
+          "X-RapidAPI-Key": process.env.JUDGE0_API_KEY!,
+          "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
+        },
+      }
+    )
+    result = await resultRes.json()
+    // status 1=queued, 2=processing, 3=accepted
+    if (result.status?.id > 2) break
+  }
+
+  const actual = (result.stdout ?? "").trim()
+  const expected = expectedOutput.trim()
+  const passed = actual === expected && result.status?.id === 3
+
+  return {
+    passed,
+    actual,
+    error: result.stderr ?? result.compile_output ?? undefined,
+  }
+}
+
+export const POST = withAuth(async (req, user) => {
+  const rawBody = await req.text()
+  const parsed = JSON.parse(rawBody)
+  const body = typeof parsed === "string" ? JSON.parse(parsed) : parsed
+  const { submissionId, problemId, code, language } = schema.parse(body)
+
+  // verify candidate owns this submission
+  const submission = await prisma.submission.findUnique({
+    where: { id: submissionId },
+    include: {
+      invite: {
+        include: {
+          test: true,
+        },
+      },
+    },
+  })
+
+  if (!submission || submission.candidateId !== user.userId) {
+    return NextResponse.json(
+      { error: "Submission not found" },
+      { status: 404 }
+    )
+  }
+
+  if (submission.status === "SUBMITTED") {
+    return NextResponse.json(
+      { error: "Already submitted" },
+      { status: 400 }
+    )
+  }
+
+  // get problem with test cases
+  const problem = await prisma.problem.findUnique({
+    where: { id: problemId },
+    include: { testCases: true },
+  })
+
+  if (!problem) {
+    return NextResponse.json(
+      { error: "Problem not found" },
+      { status: 404 }
+    )
+  }
+
+  // run all test cases
+  const results = await Promise.all(
+    problem.testCases.map((tc) =>
+      executeCode(code, language, tc.input, tc.expected)
+    )
+  )
+
+  const passed = results.filter((r) => r.passed).length
+  const total = results.length
+
+  // save answer
+  await prisma.answer.create({
+    data: {
+      submissionId,
+      problemId,
+      code,
+      language,
+      testCasesPassed: passed,
+      testCasesTotal: total,
+      tokensUsed: submission.tokensUsed,
+    },
+  })
+
+  return NextResponse.json({
+    results: {
+      passed,
+      total,
+      percentage: Math.round((passed / total) * 100),
+      details: results.map((r, i) => ({
+        testCase: i + 1,
+        passed: r.passed,
+        actual: r.actual,
+        error: r.error,
+      })),
+    },
+  })
+}, "CANDIDATE")
