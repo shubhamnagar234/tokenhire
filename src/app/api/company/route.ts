@@ -1,0 +1,22 @@
+import { NextResponse } from "next/server"
+import { prisma } from "@/lib/prisma"
+import { withAuth } from "@/lib/auth/withAuth"
+import { z } from "zod"
+
+const schema = z.object({
+  name: z.string().min(2),
+})
+
+export const POST = withAuth(async (req, user) => {
+  const body = await req.json()
+  const { name } = schema.parse(body)
+
+  const company = await prisma.company.create({
+    data: {
+      name,
+      users: { connect: { id: user.userId } },
+    },
+  })
+
+  return NextResponse.json({ company })
+}, "RECRUITER")
