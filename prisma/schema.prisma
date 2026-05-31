@@ -1,0 +1,243 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS & AUTH ───────────────────────────────
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String
+  role         Role     @default(CANDIDATE)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+
+  invites     TestInvite[]
+  submissions Submission[]
+  tokenLogs   TokenLog[]
+  sessions    Session[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  RECRUITER
+  CANDIDATE
+  ADMIN
+}
+
+// ─── COMPANIES & SUBSCRIPTIONS ──────────────────
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  plan      Plan     @default(FREE)
+  createdAt DateTime @default(now())
+
+  users User[]
+  tests Test[]
+}
+
+enum Plan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+// ─── TESTS & PROBLEMS ───────────────────────────
+
+model Test {
+  id            String  @id @default(cuid())
+  title         String
+  description   String?
+  timeLimitMins Int
+  tokenBudget   Int
+
+  weightCorrectness Float @default(0.5)
+  weightTime        Float @default(0.2)
+  weightTokenSaving Float @default(0.2)
+  weightCodeQuality Float @default(0.1)
+
+  status    TestStatus @default(DRAFT)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id])
+
+  problems TestProblem[]
+  invites  TestInvite[]
+}
+
+enum TestStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+model Problem {
+  id          String     @id @default(cuid())
+  title       String
+  description String
+  difficulty  Difficulty
+  tags        Json       @default("[]")
+
+  testCases TestCase[]
+  tests     TestProblem[]
+  answers   Answer[]
+  tokenLogs TokenLog[]
+}
+
+enum Difficulty {
+  EASY
+  MEDIUM
+  HARD
+}
+
+model TestCase {
+  id       String  @id @default(cuid())
+  input    String
+  expected String
+  isHidden Boolean @default(false)
+
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id])
+}
+
+model TestProblem {
+  id    String @id @default(cuid())
+  order Int
+
+  testId    String
+  test      Test    @relation(fields: [testId], references: [id])
+  problemId String
+  problem   Problem @relation(fields: [problemId], references: [id])
+
+  @@unique([testId, problemId])
+}
+
+// ─── INVITES ────────────────────────────────────
+
+model TestInvite {
+  id        String       @id @default(cuid())
+  email     String
+  status    InviteStatus @default(PENDING)
+  token     String       @unique @default(cuid())
+  expiresAt DateTime
+  createdAt DateTime     @default(now())
+
+  testId      String
+  test        Test    @relation(fields: [testId], references: [id])
+  candidateId String?
+  candidate   User?   @relation(fields: [candidateId], references: [id])
+
+  submission Submission?
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  COMPLETED
+  EXPIRED
+}
+
+// ─── SUBMISSIONS & SCORING ──────────────────────
+
+model Submission {
+  id          String    @id @default(cuid())
+  startedAt   DateTime  @default(now())
+  submittedAt DateTime?
+
+  timeUsedMins Int?
+  tokensUsed   Int  @default(0)
+  tokenBudget  Int
+
+  scoreCorrectness Float?
+  scoreTime        Float?
+  scoreTokenSaving Float?
+  scoreCodeQuality Float?
+  scoreComposite   Float?
+
+  status    SubmissionStatus @default(IN_PROGRESS)
+  createdAt DateTime         @default(now())
+
+  inviteId    String     @unique
+  invite      TestInvite @relation(fields: [inviteId], references: [id])
+  candidateId String
+  candidate   User       @relation(fields: [candidateId], references: [id])
+
+  answers   Answer[]
+  tokenLogs TokenLog[]
+}
+
+enum SubmissionStatus {
+  IN_PROGRESS
+  SUBMITTED
+  EVALUATED
+}
+
+model Answer {
+  id              String   @id @default(cuid())
+  code            String
+  language        Language
+  testCasesPassed Int      @default(0)
+  testCasesTotal  Int      @default(0)
+  tokensUsed      Int      @default(0)
+  submittedAt     DateTime @default(now())
+
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  problemId    String
+  problem      Problem    @relation(fields: [problemId], references: [id])
+}
+
+enum Language {
+  JAVASCRIPT
+  TYPESCRIPT
+  PYTHON
+  JAVA
+  CPP
+}
+
+// ─── TOKEN LOGS ─────────────────────────────────
+
+model TokenLog {
+  id         String     @id @default(cuid())
+  tokensUsed Int
+  promptType PromptType
+  prompt     String
+  response   String
+  createdAt  DateTime   @default(now())
+
+  candidateId  String
+  candidate    User       @relation(fields: [candidateId], references: [id])
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  problemId    String
+  problem      Problem    @relation(fields: [problemId], references: [id])
+}
+
+enum PromptType {
+  HINT
+  EXPLAIN
+  DEBUG
+  OPTIMIZE
+  GENERATE
+}
