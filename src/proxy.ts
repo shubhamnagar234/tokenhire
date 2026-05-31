@@ -5,16 +5,20 @@ const PUBLIC_ROUTES = [
   "/api/auth/login",
 ]
 
+const PROTECTED_PREFIXES = [
+  "/api/company",
+  "/api/tests",
+  "/api/problems",
+]
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  // allow public routes
   if (PUBLIC_ROUTES.some((route) => pathname.startsWith(route))) {
     return NextResponse.next()
   }
 
-  // coarse token check on all API routes
-  if (pathname.startsWith("/api")) {
+  if (PROTECTED_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     const authHeader = req.headers.get("authorization")
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
       return NextResponse.json(
