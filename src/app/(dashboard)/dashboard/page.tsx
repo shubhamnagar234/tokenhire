@@ -1,62 +1,61 @@
-"use client"
+"use client";
 
-import { useEffect } from "react"
-import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/lib/store/auth"
-import { useQuery } from "@tanstack/react-query"
-import { apiRequest } from "@/lib/api"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
-import { toast } from "sonner"
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/auth";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import Link from "next/link";
+import { toast } from "sonner";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 
 interface Test {
-  id: string
-  title: string
-  status: string
-  timeLimitMins: number
-  tokenBudget: number
-  createdAt: string
-  problems: { id: string }[]
-  invites: { id: string; status: string }[]
+  id: string;
+  title: string;
+  status: string;
+  timeLimitMins: number;
+  tokenBudget: number;
+  createdAt: string;
+  problems: { id: string }[];
+  invites: { id: string; status: string }[];
 }
 
 export default function DashboardPage() {
-  const router = useRouter()
-  const { user, token, clearAuth } = useAuthStore()
+  const router = useRouter();
+  const hydrated = useHydrated();
+  const { user, token, clearAuth } = useAuthStore();
 
   useEffect(() => {
-    if (!token || !user) {
-      router.push("/login")
-      return
+    if (!hydrated) return;
+    if (!token || user?.role !== "RECRUITER") {
+      router.push("/login");
     }
-    if (user.role !== "RECRUITER") {
-      router.push("/")
-    }
-  }, [token, user, router])
+  }, [hydrated, token, user, router]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["tests"],
     queryFn: () => apiRequest<{ tests: Test[] }>("/api/tests"),
     enabled: !!token,
-  })
+  });
 
   const handleLogout = () => {
-    clearAuth()
-    toast.success("Logged out")
-    router.push("/login")
-  }
+    clearAuth();
+    toast.success("Logged out");
+    router.push("/login");
+  };
 
-  if (isLoading) {
+  if (!hydrated || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Loading...</p>
       </div>
-    )
+    );
   }
 
-  const tests = data?.tests ?? []
+  const tests = data?.tests ?? [];
 
   return (
     <div className="min-h-screen bg-background">
@@ -137,19 +136,25 @@ export default function DashboardPage() {
         ) : (
           <div className="space-y-3">
             {tests.map((test) => (
-              <Card key={test.id} className="hover:border-blue-500/50 transition-colors">
+              <Card
+                key={test.id}
+                className="hover:border-blue-500/50 transition-colors"
+              >
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="flex items-center gap-4">
                     <div>
                       <p className="font-medium">{test.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {test.problems.length} problems · {test.timeLimitMins} mins · {test.tokenBudget} tokens
+                        {test.problems.length} problems · {test.timeLimitMins}{" "}
+                        mins · {test.tokenBudget} tokens
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Badge
-                      variant={test.status === "ACTIVE" ? "default" : "secondary"}
+                      variant={
+                        test.status === "ACTIVE" ? "default" : "secondary"
+                      }
                     >
                       {test.status}
                     </Badge>
@@ -157,7 +162,9 @@ export default function DashboardPage() {
                       {test.invites.length} invited
                     </span>
                     <Link href={`/dashboard/tests/${test.id}`}>
-                      <Button variant="outline" size="sm">View</Button>
+                      <Button variant="outline" size="sm">
+                        View
+                      </Button>
                     </Link>
                   </div>
                 </CardContent>
@@ -167,5 +174,5 @@ export default function DashboardPage() {
         )}
       </main>
     </div>
-  )
+  );
 }

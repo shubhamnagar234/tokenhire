@@ -95,16 +95,28 @@ export default function TestPage() {
     if (!submission) return;
 
     try {
-      const data = await apiRequest<{ scores: { composite: number } }>(
-        `/api/test/${inviteToken}/finish`,
-        {
-          method: "POST",
-          body: JSON.stringify({ submissionId: submission.id }),
-        },
-      );
-      toast.success(
-        `Test submitted! Composite score: ${data.scores.composite}`,
-      );
+      const data = await apiRequest<{
+        scores: {
+          composite: number;
+          correctness: number;
+          time: number;
+          tokenSaving: number;
+          codeQuality: number;
+        };
+        summary: {
+          timeUsedMins: number;
+          tokensUsed: number;
+          tokenBudget: number;
+          testCasesPassed: number;
+          testCasesTotal: number;
+        };
+      }>(`/api/test/${inviteToken}/finish`, {
+        method: "POST",
+        body: JSON.stringify({ submissionId: submission.id }),
+      });
+      // store scores for complete page
+      sessionStorage.setItem("tokenhire-scores", JSON.stringify(data));
+      toast.success("Test submitted!");
       router.push(`/test/${inviteToken}/complete`);
     } catch (err: unknown) {
       toast.error((err as Error).message);

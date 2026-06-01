@@ -1,0 +1,185 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { gsap } from "gsap";
+import Link from "next/link";
+
+interface CompletionData {
+  scores: {
+    composite: number;
+    correctness: number;
+    time: number;
+    tokenSaving: number;
+    codeQuality: number;
+  };
+  summary: {
+    timeUsedMins: number;
+    tokensUsed: number;
+    tokenBudget: number;
+    testCasesPassed: number;
+    testCasesTotal: number;
+  };
+}
+
+export default function TestCompletePage() {
+  const [data, setData] = useState<CompletionData | null>(null);
+  const scoreRef = useRef<HTMLDivElement>(null);
+  const cardsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    Promise.resolve().then(() => {
+      const stored = sessionStorage.getItem("tokenhire-scores");
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        setData(parsed);
+        sessionStorage.removeItem("tokenhire-scores");
+      }
+    });
+  }, []);
+
+  // GSAP score reveal animation
+  useEffect(() => {
+    if (!data || !scoreRef.current || !cardsRef.current) return;
+
+    gsap.fromTo(
+      scoreRef.current,
+      { scale: 0.5, opacity: 0 },
+      { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.7)" },
+    );
+
+    gsap.fromTo(
+      cardsRef.current.children,
+      { y: 30, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.4,
+        stagger: 0.1,
+        ease: "power2.out",
+        delay: 0.4,
+      },
+    );
+  }, [data]);
+
+  if (!data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
+            <span className="text-3xl">✓</span>
+          </div>
+          <h1 className="text-2xl font-bold">Test Submitted!</h1>
+          <p className="text-muted-foreground">
+            Your responses have been recorded.
+          </p>
+          <Link href="/">
+            <Button variant="outline">Go Home</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const scoreColor =
+    data.scores.composite >= 70
+      ? "text-green-400"
+      : data.scores.composite >= 40
+        ? "text-yellow-400"
+        : "text-red-400";
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="max-w-lg w-full space-y-6">
+        {/* Score reveal */}
+        <div className="text-center space-y-2">
+          <p className="text-muted-foreground text-sm uppercase tracking-wider">
+            Your Score
+          </p>
+          <div ref={scoreRef} className={`text-8xl font-bold ${scoreColor}`}>
+            {data.scores.composite}
+          </div>
+          <p className="text-muted-foreground">out of 100</p>
+        </div>
+
+        {/* Score breakdown */}
+        <div ref={cardsRef} className="grid grid-cols-2 gap-3">
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground mb-1">Correctness</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {data.scores.correctness}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {data.summary.testCasesPassed}/{data.summary.testCasesTotal}{" "}
+                tests
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground mb-1">Speed</p>
+              <p className="text-2xl font-bold text-purple-400">
+                {data.scores.time}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {data.summary.timeUsedMins} mins used
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground mb-1">
+                Token Efficiency
+              </p>
+              <p className="text-2xl font-bold text-green-400">
+                {data.scores.tokenSaving}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {data.summary.tokensUsed}/{data.summary.tokenBudget} used
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-4 pb-3">
+              <p className="text-xs text-muted-foreground mb-1">Code Quality</p>
+              <p className="text-2xl font-bold text-orange-400">
+                {data.scores.codeQuality}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                AI-assisted review
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Token insight */}
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardContent className="pt-4 pb-3">
+            <p className="text-sm text-blue-400 font-medium mb-1">
+              Token Efficiency Insight
+            </p>
+            <p className="text-sm text-muted-foreground">
+              You used {data.summary.tokensUsed} of {data.summary.tokenBudget}{" "}
+              tokens (
+              {Math.round(
+                (data.summary.tokensUsed / data.summary.tokenBudget) * 100,
+              )}
+              %).
+              {data.scores.tokenSaving >= 80
+                ? " Excellent efficiency — you solved problems independently."
+                : data.scores.tokenSaving >= 50
+                  ? " Good balance of AI assistance and independent solving."
+                  : " Heavy AI usage detected — consider practising independently."}
+            </p>
+          </CardContent>
+        </Card>
+
+        <p className="text-center text-sm text-muted-foreground">
+          Results have been sent to the recruiter.
+        </p>
+      </div>
+    </div>
+  );
+}
