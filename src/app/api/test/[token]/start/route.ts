@@ -11,6 +11,9 @@ export const POST = withAuth(async (req, user) => {
     include: { test: true },
   })
 
+  console.log("invite:", invite)
+  console.log("user:", user)
+
   if (!invite) {
     return NextResponse.json(
       { error: "Invalid invite link" },
