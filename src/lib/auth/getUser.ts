@@ -1,15 +1,13 @@
 import { NextRequest } from "next/server"
+import { verifyToken, JWTPayload } from "./jwt"
 
-export interface AuthUser {
-  userId: string
-  email: string
-  role: "RECRUITER" | "CANDIDATE" | "ADMIN"
-}
-
-export const getUser = (req: NextRequest): AuthUser => {
-  return {
-    userId: req.headers.get("x-user-id")!,
-    email: req.headers.get("x-user-email")!,
-    role: req.headers.get("x-user-role") as AuthUser["role"],
+export const getUser = (req: NextRequest): JWTPayload | null => {
+  const token = req.cookies.get("auth_token")?.value
+  if (!token) return null
+  
+  try {
+    return verifyToken(token)
+  } catch {
+    return null
   }
 }

@@ -15,7 +15,7 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 export default function NewTestPage() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { token, user } = useAuthStore();
+  const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [companyId, setCompanyId] = useState("");
   const [form, setForm] = useState({
@@ -31,10 +31,10 @@ export default function NewTestPage() {
 
   useEffect(() => {
     if (!hydrated) return;
-    if (!token || user?.role !== "RECRUITER") {
+    if (!user || user?.role !== "RECRUITER") {
       router.push("/login");
     }
-  }, [hydrated, token, user, router]);
+  }, [hydrated, user, router]);
 
   const handleCreateCompanyAndTest = async (e: React.FormEvent) => {
     e.preventDefault();

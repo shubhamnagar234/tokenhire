@@ -3,6 +3,14 @@ import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
+import { z } from "zod";
+
+const schema = z.object({
+  prompt: z.string().min(1),
+  promptType: z.enum(["HINT", "EXPLAIN", "DEBUG", "OPTIMIZE", "GENERATE"]),
+  problemId: z.string(),
+  submissionId: z.string(),
+});
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   HINT: "Give a directional hint only. Do not provide complete solutions. One sentence max.",
@@ -15,15 +23,9 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 };
 
 export const POST = withAuth(async (req, user) => {
-  const body = await req.json();
-  const { prompt, promptType, problemId, submissionId } = body;
-
-  if (!prompt || !promptType || !problemId || !submissionId) {
-    return NextResponse.json(
-      { error: "Missing required fields" },
-      { status: 400 },
-    );
-  }
+  try {
+    const body = await req.json();
+    const { prompt, promptType, problemId, submissionId } = schema.parse(body);
 
   // get current submission
   const submission = await prisma.submission.findUnique({
@@ -96,11 +98,20 @@ export const POST = withAuth(async (req, user) => {
 
   const newTokensUsed = submission.tokensUsed + tokensToDeduct;
 
-  return NextResponse.json({
-    response: aiResponse,
-    tokensUsed: tokensToDeduct,
-    tokensRemaining: submission.tokenBudget - newTokensUsed,
-    totalTokensUsed: newTokensUsed,
-    tokenBudget: submission.tokenBudget,
-  });
+    return NextResponse.json({
+      response: aiResponse,
+      tokensUsed: tokensToDeduct,
+      tokensRemaining: submission.tokenBudget - newTokensUsed,
+      totalTokensUsed: newTokensUsed,
+      tokenBudget: submission.tokenBudget,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.issues }, { status: 422 });
+    }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
 }, "CANDIDATE");

@@ -22,12 +22,12 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      const data = await apiRequest<{ token: string; user: { id: string; name: string; email: string; role: "RECRUITER" | "CANDIDATE" | "ADMIN" } }>("/api/auth/login", {
+      const data = await apiRequest<{ user: { id: string; name: string; email: string; role: "RECRUITER" | "CANDIDATE" | "ADMIN" } }>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify(form),
       })
 
-      setAuth(data.token, data.user)
+      setAuth(data.user)
 
       toast.success("Welcome back!", { description: `Logged in as ${data.user.name}` })
 

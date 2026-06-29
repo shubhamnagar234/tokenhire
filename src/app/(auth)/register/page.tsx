@@ -27,12 +27,12 @@ export default function RegisterPage() {
     setLoading(true)
 
     try {
-      const data = await apiRequest<{ token: string; user: { id: string; name: string; email: string; role: "RECRUITER" | "CANDIDATE" | "ADMIN" } }>("/api/auth/register", {
+      const data = await apiRequest<{ user: { id: string; name: string; email: string; role: "RECRUITER" | "CANDIDATE" | "ADMIN" } }>("/api/auth/register", {
         method: "POST",
         body: JSON.stringify(form),
       })
 
-      setAuth(data.token, data.user)
+      setAuth(data.user)
       toast.success("Account created!", { description: `Welcome, ${data.user.name}` })
 
       if (data.user.role === "RECRUITER") {

@@ -11,7 +11,7 @@ export const withAuth = (
   requiredRole?: "RECRUITER" | "CANDIDATE" | "ADMIN"
 ) => {
   return async (req: NextRequest): Promise<NextResponse> => {
-    const token = req.headers.get("authorization")?.split(" ")[1]
+    const token = req.cookies.get("auth_token")?.value
 
     try {
       const user = verifyToken(token!)

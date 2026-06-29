@@ -13,27 +13,34 @@ export const POST = withAuth(async (req, user) => {
   const segments = new URL(req.url).pathname.split("/")
   const testId = segments[segments.indexOf("tests") + 1]
 
-  const body = await req.json()
-  const { problemId, order } = schema.parse(body)
+  try {
+    const body = await req.json()
+    const { problemId, order } = schema.parse(body)
 
-  const test = await prisma.test.findFirst({
-    where: {
-      id: testId,
-      company: { users: { some: { id: user.userId } } },
-    },
-  })
+    const test = await prisma.test.findFirst({
+      where: {
+        id: testId,
+        company: { users: { some: { id: user.userId } } },
+      },
+    })
 
-  if (!test) {
-    return NextResponse.json(
-      { error: "Test not found or access denied" },
-      { status: 403 }
-    )
+    if (!test) {
+      return NextResponse.json(
+        { error: "Test not found or access denied" },
+        { status: 403 }
+      )
+    }
+
+    const testProblem = await prisma.testProblem.create({
+      data: { testId, problemId, order },
+      include: { problem: true },
+    })
+
+    return NextResponse.json({ testProblem })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.issues }, { status: 422 })
+    }
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-
-  const testProblem = await prisma.testProblem.create({
-    data: { testId, problemId, order },
-    include: { problem: true },
-  })
-
-  return NextResponse.json({ testProblem })
 }, "RECRUITER")

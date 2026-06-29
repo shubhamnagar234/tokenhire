@@ -26,19 +26,19 @@ interface Test {
 export default function DashboardPage() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { user, token, clearAuth } = useAuthStore();
+  const { user, clearAuth } = useAuthStore();
 
   useEffect(() => {
     if (!hydrated) return;
-    if (!token || user?.role !== "RECRUITER") {
+    if (!user || user?.role !== "RECRUITER") {
       router.push("/login");
     }
-  }, [hydrated, token, user, router]);
+  }, [hydrated, user, router]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["tests"],
     queryFn: () => apiRequest<{ tests: Test[] }>("/api/tests"),
-    enabled: !!token,
+    enabled: !!user,
   });
 
   const handleLogout = () => {

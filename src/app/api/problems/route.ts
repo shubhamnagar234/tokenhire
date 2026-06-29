@@ -16,23 +16,30 @@ const schema = z.object({
 })
 
 export const POST = withAuth(async (req) => {
-  const body = await req.json()
-  const data = schema.parse(body)
+  try {
+    const body = await req.json()
+    const data = schema.parse(body)
 
-  const problem = await prisma.problem.create({
-    data: {
-      title: data.title,
-      description: data.description,
-      difficulty: data.difficulty,
-      tags: data.tags,
-      testCases: {
-        create: data.testCases,
+    const problem = await prisma.problem.create({
+      data: {
+        title: data.title,
+        description: data.description,
+        difficulty: data.difficulty,
+        tags: data.tags,
+        testCases: {
+          create: data.testCases,
+        },
       },
-    },
-    include: { testCases: true },
-  })
+      include: { testCases: true },
+    })
 
-  return NextResponse.json({ problem })
+    return NextResponse.json({ problem })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.issues }, { status: 422 })
+    }
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
 }, "RECRUITER")
 
 export const GET = withAuth(async () => {

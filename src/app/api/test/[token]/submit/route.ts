@@ -78,84 +78,91 @@ async function executeCode(
 }
 
 export const POST = withAuth(async (req, user) => {
-  const rawBody = await req.text()
-  const parsed = JSON.parse(rawBody)
-  const body = typeof parsed === "string" ? JSON.parse(parsed) : parsed
-  const { submissionId, problemId, code, language } = schema.parse(body)
+  try {
+    const rawBody = await req.text()
+    const parsed = JSON.parse(rawBody)
+    const body = typeof parsed === "string" ? JSON.parse(parsed) : parsed
+    const { submissionId, problemId, code, language } = schema.parse(body)
 
-  // verify candidate owns this submission
-  const submission = await prisma.submission.findUnique({
-    where: { id: submissionId },
-    include: {
-      invite: {
-        include: {
-          test: true,
+    // verify candidate owns this submission
+    const submission = await prisma.submission.findUnique({
+      where: { id: submissionId },
+      include: {
+        invite: {
+          include: {
+            test: true,
+          },
         },
       },
-    },
-  })
+    })
 
-  if (!submission || submission.candidateId !== user.userId) {
-    return NextResponse.json(
-      { error: "Submission not found" },
-      { status: 404 }
+    if (!submission || submission.candidateId !== user.userId) {
+      return NextResponse.json(
+        { error: "Submission not found" },
+        { status: 404 }
+      )
+    }
+
+    if (submission.status === "SUBMITTED") {
+      return NextResponse.json(
+        { error: "Already submitted" },
+        { status: 400 }
+      )
+    }
+
+    // get problem with test cases
+    const problem = await prisma.problem.findUnique({
+      where: { id: problemId },
+      include: { testCases: true },
+    })
+
+    if (!problem) {
+      return NextResponse.json(
+        { error: "Problem not found" },
+        { status: 404 }
+      )
+    }
+
+    // run all test cases
+    const results = await Promise.all(
+      problem.testCases.map((tc) =>
+        executeCode(code, language, tc.input, tc.expected)
+      )
     )
+
+    const passed = results.filter((r) => r.passed).length
+    const total = results.length
+
+    // save answer
+    await prisma.answer.create({
+      data: {
+        submissionId,
+        problemId,
+        code,
+        language,
+        testCasesPassed: passed,
+        testCasesTotal: total,
+        tokensUsed: submission.tokensUsed,
+      },
+    })
+
+    return NextResponse.json({
+      results: {
+        passed,
+        total,
+        percentage: Math.round((passed / total) * 100),
+        details: results.map((r, i) => ({
+          testCase: i + 1,
+          passed: r.passed,
+          actual: r.actual,
+          error: r.error,
+        })),
+      },
+    })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.issues }, { status: 422 })
+    }
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-
-  if (submission.status === "SUBMITTED") {
-    return NextResponse.json(
-      { error: "Already submitted" },
-      { status: 400 }
-    )
-  }
-
-  // get problem with test cases
-  const problem = await prisma.problem.findUnique({
-    where: { id: problemId },
-    include: { testCases: true },
-  })
-
-  if (!problem) {
-    return NextResponse.json(
-      { error: "Problem not found" },
-      { status: 404 }
-    )
-  }
-
-  // run all test cases
-  const results = await Promise.all(
-    problem.testCases.map((tc) =>
-      executeCode(code, language, tc.input, tc.expected)
-    )
-  )
-
-  const passed = results.filter((r) => r.passed).length
-  const total = results.length
-
-  // save answer
-  await prisma.answer.create({
-    data: {
-      submissionId,
-      problemId,
-      code,
-      language,
-      testCasesPassed: passed,
-      testCasesTotal: total,
-      tokensUsed: submission.tokensUsed,
-    },
-  })
-
-  return NextResponse.json({
-    results: {
-      passed,
-      total,
-      percentage: Math.round((passed / total) * 100),
-      details: results.map((r, i) => ({
-        testCase: i + 1,
-        passed: r.passed,
-        actual: r.actual,
-        error: r.error,
-      })),
-    },
-  })
 }, "CANDIDATE")

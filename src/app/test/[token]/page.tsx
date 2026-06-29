@@ -67,7 +67,7 @@ const PROMPT_TYPES = [
 export default function TestPage() {
   const params = useParams();
   const router = useRouter();
-  const { token: authToken, user } = useAuthStore();
+  const { user } = useAuthStore();
 
   const [testData, setTestData] = useState<TestData | null>(null);
   const [submission, setSubmission] = useState<Submission | null>(null);
@@ -133,7 +133,7 @@ export default function TestPage() {
     const load = async () => {
       try {
         // check auth first
-        if (!authToken || !user) {
+        if (!user) {
           router.push(`/login`);
           return;
         }
@@ -166,7 +166,7 @@ export default function TestPage() {
       }
     };
     load();
-  }, [inviteToken, authToken, user, router, hydrated]);
+  }, [inviteToken, user, router, hydrated]);
 
   // countdown timer
   useEffect(() => {

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword } from "@/lib/auth/password"
 import { signToken } from "@/lib/auth/jwt"
@@ -36,8 +37,16 @@ export async function POST(req: NextRequest) {
       role: user.role,
     })
 
+    const cookieStore = await cookies()
+    cookieStore.set("auth_token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      path: "/",
+    })
+
     return NextResponse.json({
-      token,
       user: { id: user.id, name: user.name, email: user.email, role: user.role },
     })
   } catch (error) {

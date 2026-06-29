@@ -1,7 +1,6 @@
 import { create } from "zustand"
-import { persist } from "zustand/middleware"
 
-interface User {
+export interface User {
   id: string
   name: string
   email: string
@@ -9,20 +8,13 @@ interface User {
 }
 
 interface AuthStore {
-  token: string | null
   user: User | null
-  setAuth: (token: string, user: User) => void
+  setAuth: (user: User) => void
   clearAuth: () => void
 }
 
-export const useAuthStore = create<AuthStore>()(
-  persist(
-    (set) => ({
-      token: null,
-      user: null,
-      setAuth: (token, user) => set({ token, user }),
-      clearAuth: () => set({ token: null, user: null }),
-    }),
-    { name: "tokenhire-auth" }
-  )
-)
+export const useAuthStore = create<AuthStore>((set) => ({
+  user: null,
+  setAuth: (user) => set({ user }),
+  clearAuth: () => set({ user: null }),
+}))

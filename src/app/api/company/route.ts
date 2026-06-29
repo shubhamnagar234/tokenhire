@@ -8,15 +8,22 @@ const schema = z.object({
 })
 
 export const POST = withAuth(async (req, user) => {
-  const body = await req.json()
-  const { name } = schema.parse(body)
+  try {
+    const body = await req.json()
+    const { name } = schema.parse(body)
 
-  const company = await prisma.company.create({
-    data: {
-      name,
-      users: { connect: { id: user.userId } },
-    },
-  })
+    const company = await prisma.company.create({
+      data: {
+        name,
+        users: { connect: { id: user.userId } },
+      },
+    })
 
-  return NextResponse.json({ company })
+    return NextResponse.json({ company })
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: error.issues }, { status: 422 })
+    }
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  }
 }, "RECRUITER")

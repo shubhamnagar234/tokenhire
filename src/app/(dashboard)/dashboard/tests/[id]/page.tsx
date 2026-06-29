@@ -40,21 +40,21 @@ export default function TestDetailPage() {
   const params = useParams();
   const router = useRouter();
   const hydrated = useHydrated();
-  const { token, user } = useAuthStore();
+  const { user } = useAuthStore();
   const testId = params.id as string;
 
   useEffect(() => {
     if (!hydrated) return;
-    if (!token || user?.role !== "RECRUITER") {
+    if (!user || user?.role !== "RECRUITER") {
       router.push("/login");
     }
-  }, [hydrated, token, user, router]);
+  }, [hydrated, user, router]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["leaderboard", testId],
     queryFn: () =>
       apiRequest<LeaderboardData>(`/api/tests/${testId}/leaderboard`),
-    enabled: !!token,
+    enabled: !!user,
   });
 
   const handleCopyInviteLink = async () => {
