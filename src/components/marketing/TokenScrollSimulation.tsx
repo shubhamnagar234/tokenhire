@@ -195,9 +195,9 @@ export function TokenScrollSimulation() {
         {/* Right Side: Visual Simulation */}
         <div className="relative h-[450px]">
           {/* Editor Window */}
-          <div className="editor-window absolute inset-0 bg-[#0d1117] border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden">
+          <div className="editor-window absolute inset-0 dark:bg-[#0d1117] bg-white border border-border rounded-xl shadow-2xl flex flex-col overflow-hidden">
             {/* Editor Header */}
-            <div className="bg-[#161b22] border-b border-border px-4 py-3 flex items-center justify-between">
+            <div className="dark:bg-[#161b22] bg-muted/50 border-b border-border px-4 py-3 flex items-center justify-between">
               <div className="flex gap-2">
                 <div className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500/50" />
                 <div className="w-3 h-3 rounded-full bg-yellow-500/20 border border-yellow-500/50" />
@@ -223,39 +223,39 @@ export function TokenScrollSimulation() {
             </div>
 
             {/* Editor Body */}
-            <div className="p-5 font-mono text-sm space-y-3 text-gray-300">
+            <div className="p-5 font-mono text-sm space-y-3 dark:text-gray-300 text-gray-700">
               <div className="code-line">
-                <span className="text-purple-400">vector</span>&#60;
-                <span className="text-purple-400">int</span>&#62;{" "}
-                <span className="text-blue-400">twoSum</span>(vector&#60;
-                <span className="text-purple-400">int</span>&#62;&amp; nums,{" "}
-                <span className="text-purple-400">int</span> target) {"{"}
+                <span className="dark:text-purple-400 text-purple-600">vector</span>&#60;
+                <span className="dark:text-purple-400 text-purple-600">int</span>&#62;{" "}
+                <span className="dark:text-blue-400 text-blue-600">twoSum</span>(vector&#60;
+                <span className="dark:text-purple-400 text-purple-600">int</span>&#62;&amp; nums,{" "}
+                <span className="dark:text-purple-400 text-purple-600">int</span> target) {"{"}
               </div>
               <div className="code-line pl-4">
-                <span className="text-gray-500">
+                <span className="text-muted-foreground">
                   {"// I need to optimize this O(n^2) loop..."}
                 </span>
               </div>
               <div className="code-line pl-4">
-                <span className="text-purple-400">for</span>(
-                <span className="text-purple-400">int</span> i ={" "}
-                <span className="text-orange-400">0</span>; i &#60; nums.size();
+                <span className="dark:text-purple-400 text-purple-600">for</span>(
+                <span className="dark:text-purple-400 text-purple-600">int</span> i ={" "}
+                <span className="dark:text-orange-400 text-orange-600">0</span>; i &#60; nums.size();
                 i++) {"{"}
               </div>
               <div className="code-line pl-8">
-                <span className="text-purple-400">for</span>(
-                <span className="text-purple-400">int</span> j = i +{" "}
-                <span className="text-orange-400">1</span>; j &#60; nums.size();
+                <span className="dark:text-purple-400 text-purple-600">for</span>(
+                <span className="dark:text-purple-400 text-purple-600">int</span> j = i +{" "}
+                <span className="dark:text-orange-400 text-orange-600">1</span>; j &#60; nums.size();
                 j++) {"{"}
               </div>
               <div className="code-line pl-12">
-                <span className="text-purple-400">if</span>(nums[i] + nums[j] ==
-                target) <span className="text-purple-400">return</span> {"{"}i,
+                <span className="dark:text-purple-400 text-purple-600">if</span>(nums[i] + nums[j] ==
+                target) <span className="dark:text-purple-400 text-purple-600">return</span> {"{"}i,
                 j{"}"};
               </div>
               <div className="code-line pl-8">{"}"}</div>
               <div className="code-line pl-4">{"}"}</div>
-              <div className="code-line-final pl-4 text-green-400 bg-green-500/10 py-1 -mx-2 px-2 border-l-2 border-green-400">
+              <div className="code-line-final pl-4 dark:text-green-400 text-green-700 bg-green-500/10 py-1 -mx-2 px-2 border-l-2 dark:border-green-400 border-green-600">
                 {
                   "// AI optimized: Use unordered_map to achieve O(n) time complexity"
                 }

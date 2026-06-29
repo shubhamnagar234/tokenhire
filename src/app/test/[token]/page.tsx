@@ -4,6 +4,7 @@ import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth";
 import { apiRequest } from "@/lib/api";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
@@ -127,46 +128,46 @@ export default function TestPage() {
     Promise.resolve().then(() => setHydrated(true));
   }, []);
 
-  // load test data
-  useEffect(() => {
-    if (!hydrated) return;
-    const load = async () => {
-      try {
-        // check auth first
-        if (!user) {
-          router.push(`/login`);
-          return;
-        }
-
-        if (user.role !== "CANDIDATE") {
-          toast.error("Only candidates can take tests");
-          router.push("/dashboard");
-          return;
-        }
-
-        const data = await apiRequest<TestData>(`/api/test/${inviteToken}`);
-        setTestData(data);
-
-        const sub = await apiRequest<{ submission: Submission }>(
-          `/api/test/${inviteToken}/start`,
-          { method: "POST" },
-        );
-        setSubmission(sub.submission);
-        setTokensUsed(sub.submission.tokensUsed);
-
-        const elapsed = Math.floor(
-          (Date.now() - new Date(sub.submission.startedAt).getTime()) / 1000,
-        );
-        const totalSecs = data.invite.test.timeLimitMins * 60;
-        setTimeLeft(Math.max(0, totalSecs - elapsed));
-      } catch (err: unknown) {
-        toast.error((err as Error).message);
-      } finally {
-        setLoading(false);
+  const { data: fetchPayload, isLoading } = useQuery({
+    queryKey: ["test-data", inviteToken],
+    queryFn: async () => {
+      if (user?.role !== "CANDIDATE") {
+        throw new Error("Only candidates can take tests");
       }
-    };
-    load();
-  }, [inviteToken, user, router, hydrated]);
+      const data = await apiRequest<TestData>(`/api/test/${inviteToken}`);
+      const sub = await apiRequest<{ submission: Submission }>(`/api/test/${inviteToken}/start`, { method: "POST" });
+      
+      const elapsed = Math.floor((Date.now() - new Date(sub.submission.startedAt).getTime()) / 1000);
+      const totalSecs = data.invite.test.timeLimitMins * 60;
+      
+      return { testData: data, submission: sub.submission, initialTimeLeft: Math.max(0, totalSecs - elapsed) };
+    },
+    enabled: !!user && hydrated,
+    staleTime: Infinity,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  // Sync query data to local state
+  useEffect(() => {
+    if (fetchPayload && !testData) {
+      Promise.resolve().then(() => {
+        setTestData(fetchPayload.testData);
+        setSubmission(fetchPayload.submission);
+        setTokensUsed(fetchPayload.submission.tokensUsed);
+        setTimeLeft(fetchPayload.initialTimeLeft);
+        setLoading(false);
+      });
+    }
+  }, [fetchPayload, testData]);
+
+  // check auth first
+  useEffect(() => {
+    if (hydrated && user?.role !== "CANDIDATE" && !isLoading) {
+      if (!user) router.push("/login");
+      else router.push("/dashboard");
+    }
+  }, [hydrated, user, router, isLoading]);
 
   // countdown timer
   useEffect(() => {

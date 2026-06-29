@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 interface Test {
   id: string;
@@ -68,6 +69,7 @@ export default function DashboardPage() {
           <span className="font-bold text-lg">TokenHire</span>
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <span className="text-sm text-muted-foreground">{user?.name}</span>
           <Button variant="outline" size="sm" onClick={handleLogout}>
             Logout
