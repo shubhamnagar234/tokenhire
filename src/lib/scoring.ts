@@ -24,7 +24,7 @@ export function calculateScore(input: ScoreInput): ScoreOutput {
   const scoreCorrectness =
     input.testCasesTotal > 0
       ? (input.testCasesPassed / input.testCasesTotal) * 100
-      : 0
+      : 100
 
   // time score — more time remaining = higher score (0-100)
   const timeRemaining = input.timeLimitMins - input.timeUsedMins
@@ -45,12 +45,24 @@ export function calculateScore(input: ScoreInput): ScoreOutput {
   // for now based on correctness with a slight bonus for efficiency
   const scoreCodeQuality = scoreCorrectness * 0.8 + scoreTokenSaving * 0.2
 
+  // normalize weights in case they don't exactly equal 1.0
+  const totalWeight =
+    input.weightCorrectness +
+    input.weightTime +
+    input.weightTokenSaving +
+    input.weightCodeQuality
+
+  const wCorrectness = input.weightCorrectness / totalWeight
+  const wTime = input.weightTime / totalWeight
+  const wTokenSaving = input.weightTokenSaving / totalWeight
+  const wCodeQuality = input.weightCodeQuality / totalWeight
+
   // composite weighted score
   const scoreComposite =
-    scoreCorrectness * input.weightCorrectness +
-    scoreTime * input.weightTime +
-    scoreTokenSaving * input.weightTokenSaving +
-    scoreCodeQuality * input.weightCodeQuality
+    scoreCorrectness * wCorrectness +
+    scoreTime * wTime +
+    scoreTokenSaving * wTokenSaving +
+    scoreCodeQuality * wCodeQuality
 
   return {
     scoreCorrectness: Math.round(scoreCorrectness * 10) / 10,

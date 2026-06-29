@@ -84,6 +84,8 @@ model Test {
 
   problems TestProblem[]
   invites  TestInvite[]
+
+  @@index([companyId])
 }
 
 enum TestStatus {
@@ -185,6 +187,8 @@ model Submission {
 
   answers   Answer[]
   tokenLogs TokenLog[]
+
+  @@index([candidateId])
 }
 
 enum SubmissionStatus {
