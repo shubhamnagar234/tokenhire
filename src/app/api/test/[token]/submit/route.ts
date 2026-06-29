@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withAuth } from "@/lib/auth/withAuth"
 import { z } from "zod"
+import { submitRateLimit } from "@/lib/rate-limit"
 
 const schema = z.object({
   submissionId: z.string(),
@@ -83,6 +84,16 @@ export const POST = withAuth(async (req, user) => {
     const parsed = JSON.parse(rawBody)
     const body = typeof parsed === "string" ? JSON.parse(parsed) : parsed
     const { submissionId, problemId, code, language } = schema.parse(body)
+
+    if (submitRateLimit) {
+      const { success } = await submitRateLimit.limit(user.userId);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many code executions. Please slow down." },
+          { status: 429 }
+        );
+      }
+    }
 
     // verify candidate owns this submission
     const submission = await prisma.submission.findUnique({

@@ -4,6 +4,7 @@ import { withAuth } from "@/lib/auth/withAuth";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
+import { aiRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   prompt: z.string().min(1),
@@ -26,6 +27,16 @@ export const POST = withAuth(async (req, user) => {
   try {
     const body = await req.json();
     const { prompt, promptType, problemId, submissionId } = schema.parse(body);
+
+    if (aiRateLimit) {
+      const { success } = await aiRateLimit.limit(user.userId);
+      if (!success) {
+        return NextResponse.json(
+          { error: "Too many AI requests. Please slow down." },
+          { status: 429 }
+        );
+      }
+    }
 
   // get current submission
   const submission = await prisma.submission.findUnique({

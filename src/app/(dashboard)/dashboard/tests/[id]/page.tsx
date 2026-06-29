@@ -55,6 +55,7 @@ export default function TestDetailPage() {
     queryFn: () =>
       apiRequest<LeaderboardData>(`/api/tests/${testId}/leaderboard`),
     enabled: !!user,
+    refetchInterval: 5000, // Live poll every 5 seconds for the leaderboard
   });
 
   const handleCopyInviteLink = async () => {

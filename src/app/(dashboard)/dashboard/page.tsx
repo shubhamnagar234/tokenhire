@@ -40,6 +40,7 @@ export default function DashboardPage() {
     queryKey: ["tests"],
     queryFn: () => apiRequest<{ tests: Test[] }>("/api/tests"),
     enabled: !!user,
+    refetchInterval: 10000, // Live poll every 10 seconds
   });
 
   const handleLogout = () => {
