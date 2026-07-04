@@ -17,6 +17,7 @@ interface Test {
   id: string;
   title: string;
   status: string;
+  aiModel: string;
   timeLimitMins: number;
   tokenBudget: number;
   createdAt: string;
@@ -154,6 +155,18 @@ export default function DashboardPage() {
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${
+                        test.aiModel === "GEMINI_2_5_PRO"
+                          ? "border-purple-500/50 text-purple-400"
+                          : "border-blue-500/50 text-blue-400"
+                      }`}
+                    >
+                      {test.aiModel === "GEMINI_2_5_PRO"
+                        ? "✦ Gemini 2.5 Pro"
+                        : "⚡ Gemini 2.5 Flash"}
+                    </Badge>
                     <Badge
                       variant={
                         test.status === "ACTIVE" ? "default" : "secondary"

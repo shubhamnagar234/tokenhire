@@ -13,6 +13,7 @@ const schema = z.object({
   weightTime: z.number().default(0.2),
   weightTokenSaving: z.number().default(0.2),
   weightCodeQuality: z.number().default(0.1),
+  aiModel: z.enum(["GEMINI_2_5_FLASH", "GEMINI_2_5_PRO"]).default("GEMINI_2_5_FLASH"),
 })
 
 export const POST = withAuth(async (req, user) => {
@@ -43,6 +44,7 @@ export const POST = withAuth(async (req, user) => {
         weightTime: data.weightTime,
         weightTokenSaving: data.weightTokenSaving,
         weightCodeQuality: data.weightCodeQuality,
+        aiModel: data.aiModel,
       },
     })
 

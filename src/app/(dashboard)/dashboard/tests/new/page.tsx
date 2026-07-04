@@ -27,6 +27,7 @@ export default function NewTestPage() {
     weightTime: 0.2,
     weightTokenSaving: 0.2,
     weightCodeQuality: 0.1,
+    aiModel: "GEMINI_2_5_FLASH" as "GEMINI_2_5_FLASH" | "GEMINI_2_5_PRO",
   });
 
   useEffect(() => {
@@ -155,6 +156,54 @@ export default function NewTestPage() {
                   />
                 </div>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* AI Model Selector */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">AI Assistant Model</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {([
+                {
+                  value: "GEMINI_2_5_FLASH",
+                  label: "Gemini 2.5 Flash",
+                  desc: "Fast & cost-effective — ideal for most assessments",
+                  badge: "Recommended",
+                },
+                {
+                  value: "GEMINI_2_5_PRO",
+                  label: "Gemini 2.5 Pro",
+                  desc: "Advanced reasoning — best for complex technical roles",
+                  badge: "Pro",
+                },
+              ] as const).map((model) => (
+                <button
+                  key={model.value}
+                  type="button"
+                  onClick={() => setForm({ ...form, aiModel: model.value })}
+                  className={`w-full flex items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors ${
+                    form.aiModel === model.value
+                      ? "border-blue-500 bg-blue-500/10"
+                      : "border-border hover:border-muted-foreground"
+                  }`}
+                >
+                  <div>
+                    <p className="text-sm font-medium">{model.label}</p>
+                    <p className="text-xs text-muted-foreground">{model.desc}</p>
+                  </div>
+                  <span
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      model.value === "GEMINI_2_5_PRO"
+                        ? "bg-purple-500/20 text-purple-400"
+                        : "bg-blue-500/20 text-blue-400"
+                    }`}
+                  >
+                    {model.badge}
+                  </span>
+                </button>
+              ))}
             </CardContent>
           </Card>
 

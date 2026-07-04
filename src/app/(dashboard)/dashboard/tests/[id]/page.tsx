@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuthStore } from "@/lib/store/auth";
 import { useQuery } from "@tanstack/react-query";
@@ -42,6 +42,8 @@ export default function TestDetailPage() {
   const hydrated = useHydrated();
   const { user } = useAuthStore();
   const testId = params.id as string;
+  
+  const prevCountRef = useRef(0);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -57,6 +59,18 @@ export default function TestDetailPage() {
     enabled: !!user,
     refetchInterval: 5000, // Live poll every 5 seconds for the leaderboard
   });
+
+  useEffect(() => {
+    if (data?.leaderboard) {
+      if (prevCountRef.current > 0 && data.leaderboard.length > prevCountRef.current) {
+        toast.info("A new candidate has submitted their test!", {
+          description: "The leaderboard has been updated live.",
+          icon: "🚀"
+        });
+      }
+      prevCountRef.current = data.leaderboard.length;
+    }
+  }, [data?.leaderboard]);
 
   const handleCopyInviteLink = async () => {
     // create new invite

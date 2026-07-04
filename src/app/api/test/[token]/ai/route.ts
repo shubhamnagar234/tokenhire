@@ -64,9 +64,17 @@ export const POST = withAuth(async (req, user) => {
     );
   }
 
+  // Map the Prisma AIModel enum to the LangChain model string
+  const MODEL_MAP: Record<string, string> = {
+    GEMINI_2_5_FLASH: "gemini-2.5-flash",
+    GEMINI_2_5_PRO: "gemini-2.5-pro",
+  };
+  const modelName =
+    MODEL_MAP[submission.invite.test.aiModel] ?? "gemini-2.5-flash";
+
   // LangChain + Gemini call
   const llm = new ChatGoogleGenerativeAI({
-    model: "gemini-2.5-flash",
+    model: modelName,
     apiKey: process.env.GEMINI_API_KEY,
     maxOutputTokens: Math.min(500, tokensRemaining),
   });
