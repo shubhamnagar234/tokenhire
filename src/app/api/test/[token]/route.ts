@@ -56,6 +56,7 @@ export async function GET(req: NextRequest) {
         description: invite.test.description,
         timeLimitMins: invite.test.timeLimitMins,
         tokenBudget: invite.test.tokenBudget,
+        aiModel: invite.test.aiModel,
         problemCount: invite.test.problems.length,
         problems: invite.test.problems.map((tp) => ({
           id: tp.problem.id,

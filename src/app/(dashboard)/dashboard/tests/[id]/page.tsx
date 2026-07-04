@@ -32,7 +32,7 @@ interface LeaderboardEntry {
 }
 
 interface LeaderboardData {
-  test: { title: string; totalCandidates: number };
+  test: { title: string; aiModel: string; totalCandidates: number };
   leaderboard: LeaderboardEntry[];
 }
 
@@ -113,7 +113,22 @@ export default function TestDetailPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="font-semibold">{data?.test.title}</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="font-semibold">{data?.test.title}</h1>
+              {data?.test.aiModel && (
+                <span
+                  className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                    data.test.aiModel === "GEMINI_2_5_PRO"
+                      ? "bg-purple-500/20 text-purple-400"
+                      : "bg-blue-500/20 text-blue-400"
+                  }`}
+                >
+                  {data.test.aiModel === "GEMINI_2_5_PRO"
+                    ? "✦ Gemini 2.5 Pro"
+                    : "⚡ Gemini 2.5 Flash"}
+                </span>
+              )}
+            </div>
             <p className="text-sm text-muted-foreground">
               {data?.test.totalCandidates} completed
             </p>

@@ -79,6 +79,7 @@ export const GET = withAuth(async (req, user) => {
   return NextResponse.json({
     test: {
       title: test.title,
+      aiModel: test.aiModel,
       totalCandidates: leaderboard.length,
     },
     leaderboard,

@@ -35,6 +35,7 @@ interface TestData {
       title: string;
       timeLimitMins: number;
       tokenBudget: number;
+      aiModel: string;
       problems: Problem[];
     };
   };
@@ -470,7 +471,20 @@ export default function TestPage() {
         {aiOpen && (
           <div className="w-[340px] border-l border-border flex flex-col overflow-hidden shrink-0">
             <div className="border-b border-border px-4 py-3 flex items-center justify-between">
-              <span className="font-medium text-sm">AI Assistant</span>
+              <div>
+                <span className="font-medium text-sm">AI Assistant</span>
+                <p
+                  className={`text-[10px] mt-0.5 font-semibold ${
+                    test.aiModel === "GEMINI_2_5_PRO"
+                      ? "text-purple-400"
+                      : "text-blue-400"
+                  }`}
+                >
+                  {test.aiModel === "GEMINI_2_5_PRO"
+                    ? "✦ Powered by Gemini 2.5 Pro"
+                    : "⚡ Powered by Gemini 2.5 Flash"}
+                </p>
+              </div>
               <span className="text-xs text-muted-foreground">
                 {submission.tokenBudget - tokensUsed} tokens left
               </span>
