@@ -9,6 +9,8 @@ interface ScoreInput {
   weightTime: number
   weightTokenSaving: number
   weightCodeQuality: number
+  /** Optional: AI-assessed code quality score (0–100). When provided, overrides the placeholder formula. */
+  codeQualityScore?: number
 }
 
 interface ScoreOutput {
@@ -41,9 +43,12 @@ export function calculateScore(input: ScoreInput): ScoreOutput {
     (tokensSaved / input.tokenBudget) * 100
   )
 
-  // code quality placeholder — can be enhanced with AI review later
-  // for now based on correctness with a slight bonus for efficiency
-  const scoreCodeQuality = scoreCorrectness * 0.8 + scoreTokenSaving * 0.2
+  // code quality: use AI-assessed score if available, otherwise fall back to
+  // a proxy based on correctness + token efficiency
+  const scoreCodeQuality =
+    input.codeQualityScore !== undefined
+      ? Math.max(0, Math.min(100, input.codeQualityScore))
+      : scoreCorrectness * 0.8 + scoreTokenSaving * 0.2
 
   // normalize weights in case they don't exactly equal 1.0
   const totalWeight =
