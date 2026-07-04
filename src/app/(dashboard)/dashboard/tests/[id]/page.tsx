@@ -16,6 +16,7 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 
 interface LeaderboardEntry {
   rank: number;
+  submissionId: string;
   candidate: { name: string; email: string };
   scores: {
     composite: number;
@@ -260,105 +261,112 @@ export default function TestDetailPage() {
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Leaderboard</h2>
                 {leaderboard.map((entry) => (
-                  <Card
+                  <Link
                     key={entry.rank}
-                    className={entry.rank === 1 ? "border-yellow-500/50" : ""}
+                    href={`/dashboard/tests/${testId}/submissions/${entry.submissionId}`}
+                    className="block group"
                   >
-                    <CardContent className="py-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex items-center gap-4">
-                          <div
-                            className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                              entry.rank === 1
-                                ? "bg-yellow-500/20 text-yellow-400"
-                                : entry.rank === 2
-                                  ? "bg-gray-400/20 text-gray-400"
-                                  : entry.rank === 3
-                                    ? "bg-orange-500/20 text-orange-400"
-                                    : "bg-secondary text-muted-foreground"
-                            }`}
-                          >
-                            {entry.rank}
+                    <Card
+                      className={`transition-colors group-hover:border-blue-500/50 ${
+                        entry.rank === 1 ? "border-yellow-500/50" : ""
+                      }`}
+                    >
+                      <CardContent className="py-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-4">
+                            <div
+                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+                                entry.rank === 1
+                                  ? "bg-yellow-500/20 text-yellow-400"
+                                  : entry.rank === 2
+                                    ? "bg-gray-400/20 text-gray-400"
+                                    : entry.rank === 3
+                                      ? "bg-orange-500/20 text-orange-400"
+                                      : "bg-secondary text-muted-foreground"
+                              }`}
+                            >
+                              {entry.rank}
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {entry.candidate.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                {entry.candidate.email}
+                              </p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium">
-                              {entry.candidate.name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {entry.candidate.email}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-3xl font-bold text-blue-400">
-                            {entry.scores.composite}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            composite
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-4 gap-3 mt-4">
-                        {[
-                          {
-                            label: "Correctness",
-                            value: entry.scores.correctness,
-                            color: "text-blue-400",
-                          },
-                          {
-                            label: "Speed",
-                            value: entry.scores.time,
-                            color: "text-purple-400",
-                          },
-                          {
-                            label: "Token Eff.",
-                            value: entry.scores.tokenSaving,
-                            color: "text-green-400",
-                          },
-                          {
-                            label: "Code Quality",
-                            value: entry.scores.codeQuality,
-                            color: "text-orange-400",
-                          },
-                        ].map((s) => (
-                          <div
-                            key={s.label}
-                            className="bg-secondary/50 rounded-lg p-2 text-center"
-                          >
-                            <p className={`text-lg font-bold ${s.color}`}>
-                              {s.value}
+                          <div className="text-right">
+                            <p className="text-3xl font-bold text-blue-400">
+                              {entry.scores.composite}
                             </p>
                             <p className="text-xs text-muted-foreground">
-                              {s.label}
+                              composite
                             </p>
                           </div>
-                        ))}
-                      </div>
+                        </div>
 
-                      <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>{entry.summary.timeUsedMins} mins used</span>
-                        <span>
-                          {entry.summary.tokensUsed}/{entry.summary.tokenBudget}{" "}
-                          tokens
-                        </span>
-                        <span className="text-green-400">
-                          {entry.summary.tokenEfficiency}% efficient
-                        </span>
-                        {Object.entries(entry.summary.aiUsageBreakdown).map(
-                          ([type, tokens]) => (
-                            <Badge
-                              key={type}
-                              variant="outline"
-                              className="text-xs"
+                        <div className="grid grid-cols-4 gap-3 mt-4">
+                          {[
+                            {
+                              label: "Correctness",
+                              value: entry.scores.correctness,
+                              color: "text-blue-400",
+                            },
+                            {
+                              label: "Speed",
+                              value: entry.scores.time,
+                              color: "text-purple-400",
+                            },
+                            {
+                              label: "Token Eff.",
+                              value: entry.scores.tokenSaving,
+                              color: "text-green-400",
+                            },
+                            {
+                              label: "Code Quality",
+                              value: entry.scores.codeQuality,
+                              color: "text-orange-400",
+                            },
+                          ].map((s) => (
+                            <div
+                              key={s.label}
+                              className="bg-secondary/50 rounded-lg p-2 text-center"
                             >
-                              {type}: {tokens} tokens
-                            </Badge>
-                          ),
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
+                              <p className={`text-lg font-bold ${s.color}`}>
+                                {s.value}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {s.label}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                          <span>{entry.summary.timeUsedMins} mins used</span>
+                          <span>
+                            {entry.summary.tokensUsed}/
+                            {entry.summary.tokenBudget} tokens
+                          </span>
+                          <span className="text-green-400">
+                            {entry.summary.tokenEfficiency}% efficient
+                          </span>
+                          {Object.entries(entry.summary.aiUsageBreakdown).map(
+                            ([type, tokens]) => (
+                              <Badge
+                                key={type}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {type}: {tokens} tokens
+                              </Badge>
+                            ),
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </Link>
                 ))}
               </div>
             )}

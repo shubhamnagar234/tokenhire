@@ -1,0 +1,302 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/auth";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { useHydrated } from "@/lib/hooks/useHydrated";
+import Link from "next/link";
+import dynamic from "next/dynamic";
+
+const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
+  ssr: false,
+});
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface ProblemBreakdown {
+  problemId: string;
+  problemTitle: string;
+  difficulty: string;
+  description: string;
+  language: string;
+  code: string;
+  testCasesPassed: number;
+  testCasesTotal: number;
+  passRate: number;
+  submittedAt: string;
+}
+
+interface SubmissionDetail {
+  id: string;
+  status: string;
+  startedAt: string;
+  submittedAt: string | null;
+  timeUsedMins: number | null;
+  tokensUsed: number;
+  tokenBudget: number;
+  scores: {
+    correctness: number | null;
+    time: number | null;
+    tokenSaving: number | null;
+    codeQuality: number | null;
+    composite: number | null;
+  };
+  candidate: { name: string; email: string };
+  test: { title: string; timeLimitMins: number; tokenBudget: number };
+  problemBreakdown: ProblemBreakdown[];
+  aiUsage: Record<string, number>;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+const MONACO_LANGUAGE_MAP: Record<string, string> = {
+  PYTHON: "python",
+  JAVASCRIPT: "javascript",
+  TYPESCRIPT: "typescript",
+  JAVA: "java",
+  CPP: "cpp",
+};
+
+const DIFFICULTY_STYLE: Record<string, string> = {
+  EASY: "text-green-400 border-green-400/50",
+  MEDIUM: "text-yellow-400 border-yellow-400/50",
+  HARD: "text-red-400 border-red-400/50",
+};
+
+const SCORE_TILES = [
+  { key: "composite", label: "Composite", color: "text-blue-400" },
+  { key: "correctness", label: "Correctness", color: "text-cyan-400" },
+  { key: "time", label: "Speed", color: "text-purple-400" },
+  { key: "tokenSaving", label: "Token Eff.", color: "text-green-400" },
+  { key: "codeQuality", label: "Code Quality", color: "text-orange-400" },
+] as const;
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function SubmissionDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const hydrated = useHydrated();
+  const { user } = useAuthStore();
+
+  const testId = params.id as string;
+  const submissionId = params.submissionId as string;
+  const [activeProb, setActiveProb] = useState(0);
+
+  useEffect(() => {
+    if (!hydrated) return;
+    if (!user || user?.role !== "RECRUITER") router.push("/login");
+  }, [hydrated, user, router]);
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["submission-detail", submissionId],
+    queryFn: () =>
+      apiRequest<{ submission: SubmissionDetail }>(
+        `/api/tests/${testId}/submissions/${submissionId}`,
+      ),
+    enabled: !!user,
+  });
+
+  if (!hydrated || isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Submission not found.</p>
+      </div>
+    );
+  }
+
+  const { submission } = data;
+  const problem = submission.problemBreakdown[activeProb];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="border-b border-border px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href={`/dashboard/tests/${testId}`}>
+            <Button variant="ghost" size="sm">
+              ← Leaderboard
+            </Button>
+          </Link>
+          <div>
+            <h1 className="font-semibold">{submission.candidate.name}</h1>
+            <p className="text-xs text-muted-foreground">
+              {submission.candidate.email}
+            </p>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">{submission.test.title}</p>
+      </header>
+
+      <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
+        {/* Score overview */}
+        <div className="grid grid-cols-5 gap-3">
+          {SCORE_TILES.map((tile) => (
+            <Card
+              key={tile.key}
+              className={tile.key === "composite" ? "border-blue-500/30" : ""}
+            >
+              <CardContent className="pt-4 pb-3 text-center">
+                <p className={`text-2xl font-bold ${tile.color}`}>
+                  {submission.scores[tile.key] ?? "—"}
+                </p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {tile.label}
+                </p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Summary bar */}
+        <div className="flex items-center gap-6 text-sm text-muted-foreground bg-secondary/40 rounded-lg px-4 py-3">
+          <span>
+            ⏱ {submission.timeUsedMins ?? "—"} / {submission.test.timeLimitMins}{" "}
+            mins
+          </span>
+          <span>
+            🪙 {submission.tokensUsed} / {submission.tokenBudget} tokens
+          </span>
+          <span>
+            📋 {submission.problemBreakdown.length} problem
+            {submission.problemBreakdown.length !== 1 ? "s" : ""} attempted
+          </span>
+          {Object.entries(submission.aiUsage).map(([type, tokens]) => (
+            <Badge key={type} variant="outline" className="text-xs">
+              {type}: {tokens} tokens
+            </Badge>
+          ))}
+        </div>
+
+        {/* Per-problem breakdown */}
+        <div className="grid grid-cols-[220px_1fr] gap-4">
+          {/* Problem list sidebar */}
+          <div className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+              Problems
+            </p>
+            {submission.problemBreakdown.map((p, i) => (
+              <button
+                key={p.problemId}
+                onClick={() => setActiveProb(i)}
+                className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors border ${
+                  activeProb === i
+                    ? "border-blue-500/50 bg-blue-500/10"
+                    : "border-border hover:border-muted-foreground bg-secondary/30"
+                }`}
+              >
+                <p className="text-sm font-medium truncate">{p.problemTitle}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span
+                    className={`text-[10px] font-semibold ${
+                      p.passRate === 100
+                        ? "text-green-400"
+                        : p.passRate > 0
+                          ? "text-yellow-400"
+                          : "text-red-400"
+                    }`}
+                  >
+                    {p.testCasesPassed}/{p.testCasesTotal} passed
+                  </span>
+                </div>
+              </button>
+            ))}
+          </div>
+
+          {/* Code + details panel */}
+          {problem ? (
+            <div className="space-y-4">
+              {/* Problem header */}
+              <Card>
+                <CardHeader className="pb-2 pt-4">
+                  <div className="flex items-center gap-3">
+                    <CardTitle className="text-base">
+                      {problem.problemTitle}
+                    </CardTitle>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ${DIFFICULTY_STYLE[problem.difficulty]}`}
+                    >
+                      {problem.difficulty}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={`text-xs ml-auto ${
+                        problem.passRate === 100
+                          ? "border-green-500/50 text-green-400"
+                          : problem.passRate > 0
+                            ? "border-yellow-500/50 text-yellow-400"
+                            : "border-red-500/50 text-red-400"
+                      }`}
+                    >
+                      {problem.testCasesPassed}/{problem.testCasesTotal} test
+                      cases · {problem.passRate}%
+                    </Badge>
+                    <span className="text-xs text-muted-foreground">
+                      {problem.language}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {problem.description}
+                  </p>
+                </CardHeader>
+              </Card>
+
+              {/* Code viewer */}
+              <Card>
+                <CardHeader className="pb-0 pt-3">
+                  <CardTitle className="text-sm text-muted-foreground font-normal">
+                    Submitted Code
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0 pt-2">
+                  <div className="rounded-b-lg overflow-hidden h-[420px]">
+                    <MonacoEditor
+                      height="420px"
+                      language={
+                        MONACO_LANGUAGE_MAP[problem.language] ?? "plaintext"
+                      }
+                      theme="vs-dark"
+                      value={problem.code}
+                      options={{
+                        readOnly: true,
+                        fontSize: 13,
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        padding: { top: 12 },
+                        fontFamily: "var(--font-geist-mono)",
+                        lineNumbers: "on",
+                        folding: true,
+                      }}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="flex items-center justify-center py-16">
+                <p className="text-muted-foreground text-sm">
+                  No submission for this problem.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
