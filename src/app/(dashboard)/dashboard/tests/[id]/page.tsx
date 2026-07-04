@@ -50,6 +50,20 @@ interface Invite {
   submission: { scoreComposite: number | null; status: string } | null;
 }
 
+interface Problem {
+  id: string;
+  title: string;
+  difficulty: string;
+  tags: string[];
+  testCases: { id: string }[];
+}
+
+interface TestProblem {
+  id: string;
+  order: number;
+  problem: Problem;
+}
+
 // ─── Status styling ───────────────────────────────────────────────────────────
 
 const INVITE_STATUS_STYLE: Record<string, string> = {
@@ -69,12 +83,13 @@ export default function TestDetailPage() {
   const queryClient = useQueryClient();
   const testId = params.id as string;
 
-  const [activeTab, setActiveTab] = useState<"leaderboard" | "invites">(
-    "leaderboard",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "leaderboard" | "invites" | "problems"
+  >("leaderboard");
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviting, setInviting] = useState(false);
   const [revoking, setRevoking] = useState<string | null>(null);
+  const [togglingProblem, setTogglingProblem] = useState<string | null>(null);
   const prevCountRef = useRef(0);
 
   useEffect(() => {
@@ -100,6 +115,21 @@ export default function TestDetailPage() {
       apiRequest<{ invites: Invite[] }>(`/api/tests/${testId}/invites`),
     enabled: !!user && activeTab === "invites",
     refetchInterval: activeTab === "invites" ? 10000 : false,
+  });
+
+  // All bank problems query
+  const { data: allProblemsData } = useQuery({
+    queryKey: ["all-problems"],
+    queryFn: () => apiRequest<{ problems: Problem[] }>("/api/problems"),
+    enabled: !!user && activeTab === "problems",
+  });
+
+  // Test's current problems query
+  const { data: testProblemsData } = useQuery({
+    queryKey: ["test-problems", testId],
+    queryFn: () =>
+      apiRequest<{ problems: TestProblem[] }>(`/api/tests/${testId}/problems`),
+    enabled: !!user && activeTab === "problems",
   });
 
   // Live leaderboard toast
@@ -169,6 +199,39 @@ export default function TestDetailPage() {
     }
   };
 
+  const handleAddProblem = async (problemId: string) => {
+    setTogglingProblem(problemId);
+    try {
+      const currentCount = testProblemsData?.problems?.length ?? 0;
+      await apiRequest(`/api/tests/${testId}/problems`, {
+        method: "POST",
+        body: JSON.stringify({ problemId, order: currentCount + 1 }),
+      });
+      toast.success("Problem added to test!");
+      queryClient.invalidateQueries({ queryKey: ["test-problems", testId] });
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+    } finally {
+      setTogglingProblem(null);
+    }
+  };
+
+  const handleRemoveProblem = async (problemId: string) => {
+    setTogglingProblem(problemId);
+    try {
+      await apiRequest(`/api/tests/${testId}/problems`, {
+        method: "DELETE",
+        body: JSON.stringify({ problemId }),
+      });
+      toast.success("Problem removed from test.");
+      queryClient.invalidateQueries({ queryKey: ["test-problems", testId] });
+    } catch (err: unknown) {
+      toast.error((err as Error).message);
+    } finally {
+      setTogglingProblem(null);
+    }
+  };
+
   // ── Loading state ─────────────────────────────────────────────────────────────
 
   if (!hydrated || isLoading) {
@@ -181,6 +244,9 @@ export default function TestDetailPage() {
 
   const leaderboard = data?.leaderboard ?? [];
   const invites = invitesData?.invites ?? [];
+  const testProblems = testProblemsData?.problems ?? [];
+  const allProblems = allProblemsData?.problems ?? [];
+  const attachedIds = new Set(testProblems.map((tp) => tp.problem.id));
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
@@ -221,7 +287,7 @@ export default function TestDetailPage() {
       {/* Tabs */}
       <div className="border-b border-border px-6">
         <div className="flex gap-1 max-w-5xl mx-auto">
-          {(["leaderboard", "invites"] as const).map((tab) => (
+          {(["leaderboard", "problems", "invites"] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -235,6 +301,11 @@ export default function TestDetailPage() {
               {tab === "invites" && invitesData && (
                 <span className="ml-1.5 text-xs bg-secondary px-1.5 py-0.5 rounded-full">
                   {invites.length}
+                </span>
+              )}
+              {tab === "problems" && testProblemsData && (
+                <span className="ml-1.5 text-xs bg-secondary px-1.5 py-0.5 rounded-full">
+                  {testProblems.length}
                 </span>
               )}
             </button>
@@ -487,6 +558,154 @@ export default function TestDetailPage() {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* ── PROBLEMS TAB ── */}
+        {activeTab === "problems" && (
+          <div className="space-y-6">
+            {/* Attached problems */}
+            <div>
+              <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-3">
+                Attached to this test ({testProblems.length})
+              </h2>
+              {testProblems.length === 0 ? (
+                <Card>
+                  <CardContent className="flex items-center justify-center py-8">
+                    <p className="text-sm text-muted-foreground">
+                      No problems attached yet — add from the bank below.
+                    </p>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-2">
+                  {testProblems.map((tp) => (
+                    <Card key={tp.id} className="border-green-500/20">
+                      <CardContent className="flex items-center justify-between py-3 gap-4">
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs text-muted-foreground w-5 text-center font-mono">
+                            #{tp.order}
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium">
+                              {tp.problem.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {tp.problem.testCases.length} test case
+                              {tp.problem.testCases.length !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${
+                              tp.problem.difficulty === "EASY"
+                                ? "text-green-400 border-green-400/50"
+                                : tp.problem.difficulty === "MEDIUM"
+                                  ? "text-yellow-400 border-yellow-400/50"
+                                  : "text-red-400 border-red-400/50"
+                            }`}
+                          >
+                            {tp.problem.difficulty}
+                          </Badge>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="text-xs"
+                            disabled={togglingProblem === tp.problem.id}
+                            onClick={() => handleRemoveProblem(tp.problem.id)}
+                          >
+                            {togglingProblem === tp.problem.id ? "…" : "Remove"}
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Problem bank */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Problem Bank ({allProblems.length})
+                </h2>
+                <Link href="/dashboard/problems">
+                  <Button variant="outline" size="sm" className="text-xs">
+                    Manage Bank →
+                  </Button>
+                </Link>
+              </div>
+              {allProblems.length === 0 ? (
+                <Card>
+                  <CardContent className="flex flex-col items-center justify-center py-8 gap-3">
+                    <p className="text-sm text-muted-foreground">
+                      Your problem bank is empty.
+                    </p>
+                    <Link href="/dashboard/problems">
+                      <Button size="sm">Create problems →</Button>
+                    </Link>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-2">
+                  {allProblems.map((problem) => {
+                    const isAttached = attachedIds.has(problem.id);
+                    return (
+                      <Card
+                        key={problem.id}
+                        className={isAttached ? "opacity-50" : ""}
+                      >
+                        <CardContent className="flex items-center justify-between py-3 gap-4">
+                          <div>
+                            <p className="text-sm font-medium">
+                              {problem.title}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {problem.testCases.length} test case
+                              {problem.testCases.length !== 1 ? "s" : ""}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Badge
+                              variant="outline"
+                              className={`text-xs ${
+                                problem.difficulty === "EASY"
+                                  ? "text-green-400 border-green-400/50"
+                                  : problem.difficulty === "MEDIUM"
+                                    ? "text-yellow-400 border-yellow-400/50"
+                                    : "text-red-400 border-red-400/50"
+                              }`}
+                            >
+                              {problem.difficulty}
+                            </Badge>
+                            <Button
+                              variant={isAttached ? "secondary" : "default"}
+                              size="sm"
+                              className="text-xs"
+                              disabled={
+                                isAttached || togglingProblem === problem.id
+                              }
+                              onClick={() =>
+                                !isAttached && handleAddProblem(problem.id)
+                              }
+                            >
+                              {togglingProblem === problem.id
+                                ? "…"
+                                : isAttached
+                                  ? "Added"
+                                  : "Add"}
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </main>

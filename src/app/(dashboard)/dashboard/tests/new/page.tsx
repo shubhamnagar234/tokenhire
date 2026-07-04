@@ -148,9 +148,13 @@ export default function NewTestPage() {
                     type="number"
                     min={100}
                     max={10000}
+                    step={100}
                     value={form.tokenBudget}
                     onChange={(e) =>
-                      setForm({ ...form, tokenBudget: Number(e.target.value) })
+                      setForm({
+                        ...form,
+                        tokenBudget: parseInt(e.target.value, 10) || 0,
+                      })
                     }
                     required
                   />

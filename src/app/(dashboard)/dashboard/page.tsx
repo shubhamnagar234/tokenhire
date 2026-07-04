@@ -164,9 +164,14 @@ export default function DashboardPage() {
         {/* Tests list */}
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold">Your Tests</h2>
-          <Link href="/dashboard/tests/new">
-            <Button>Create Test</Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link href="/dashboard/problems">
+              <Button variant="outline">Problem Bank</Button>
+            </Link>
+            <Link href="/dashboard/tests/new">
+              <Button>Create Test</Button>
+            </Link>
+          </div>
         </div>
 
         {tests.length === 0 ? (
