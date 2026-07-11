@@ -91,10 +91,14 @@ export const POST = withAuth(async (req, user) => {
   const aiResult = await llm.invoke(messages);
   const aiResponse = aiResult.content as string;
 
-  // estimate tokens — Gemini doesn't always return exact count
-  // approximate: 1 token ≈ 4 characters
-  const estimatedTokens = Math.ceil((prompt.length + aiResponse.length) / 4);
-  const tokensToDeduct = Math.min(estimatedTokens, tokensRemaining);
+  // Use actual token count from Gemini's usage metadata (prompt + output tokens).
+  // LangChain exposes this as usage_metadata.total_tokens on AIMessageChunk.
+  // Fall back to the character heuristic only if metadata is unavailable.
+  const actualTokens =
+    aiResult.usage_metadata?.total_tokens ??
+    Math.ceil((prompt.length + aiResponse.length) / 4);
+  const tokensToDeduct = Math.min(actualTokens, tokensRemaining);
+
 
   // deduct tokens + log atomically
   await prisma.$transaction([

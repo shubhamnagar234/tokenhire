@@ -25,6 +25,7 @@ model User {
   submissions Submission[]
   tokenLogs   TokenLog[]
   sessions    Session[]
+  createdProblems Problem[] @relation("CreatedProblems")
 }
 
 model Session {
@@ -51,8 +52,9 @@ model Company {
   plan      Plan     @default(FREE)
   createdAt DateTime @default(now())
 
-  users User[]
-  tests Test[]
+  users    User[]
+  tests    Test[]
+  problems Problem[]
 }
 
 enum Plan {
@@ -107,10 +109,18 @@ model Problem {
   difficulty  Difficulty
   tags        Json       @default("[]")
 
+  // Company scoping — ensures each company only sees their own problems
+  companyId   String?
+  company     Company?   @relation(fields: [companyId], references: [id])
+  createdById String?
+  createdBy   User?      @relation("CreatedProblems", fields: [createdById], references: [id])
+
   testCases TestCase[]
   tests     TestProblem[]
   answers   Answer[]
   tokenLogs TokenLog[]
+
+  @@index([companyId])
 }
 
 enum Difficulty {

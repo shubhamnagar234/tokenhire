@@ -15,10 +15,16 @@ const schema = z.object({
   })).min(1),
 })
 
-export const POST = withAuth(async (req) => {
+export const POST = withAuth(async (req, user) => {
   try {
     const body = await req.json()
     const data = schema.parse(body)
+
+    // Look up the recruiter's company to scope the problem
+    const recruiter = await prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
+    })
 
     const problem = await prisma.problem.create({
       data: {
@@ -26,6 +32,8 @@ export const POST = withAuth(async (req) => {
         description: data.description,
         difficulty: data.difficulty,
         tags: data.tags,
+        companyId: recruiter?.companyId ?? null,
+        createdById: user.userId,
         testCases: {
           create: data.testCases,
         },
@@ -42,8 +50,25 @@ export const POST = withAuth(async (req) => {
   }
 }, "RECRUITER")
 
-export const GET = withAuth(async () => {
+export const GET = withAuth(async (req, user) => {
+  // Find the recruiter's company
+  const recruiter = await prisma.user.findUnique({
+    where: { id: user.userId },
+    select: { companyId: true },
+  })
+
+  // Scope problems to this company only.
+  // Problems created before the migration (companyId = null) are also returned
+  // for the recruiter who created them (via createdById), providing backward compatibility.
   const problems = await prisma.problem.findMany({
+    where: {
+      OR: [
+        // Problems explicitly scoped to this company
+        ...(recruiter?.companyId ? [{ companyId: recruiter.companyId }] : []),
+        // Problems created by this user (backward compat for pre-migration data)
+        { createdById: user.userId },
+      ],
+    },
     include: { testCases: true },
     orderBy: { title: "asc" },
   })
