@@ -8,10 +8,8 @@ const schema = z.object({
   expiresInDays: z.number().default(7),
 });
 
-export const POST = withAuth(async (req, user) => {
-  // extract testId from URL reliably
-  const segments = new URL(req.url).pathname.split("/");
-  const testId = segments[segments.indexOf("tests") + 1];
+export const POST = withAuth(async (req, user, context) => {
+  const { testId } = await context.params;
 
   try {
     const body = await req.json();
@@ -86,9 +84,8 @@ export const POST = withAuth(async (req, user) => {
   }
 }, "RECRUITER");
 
-export const GET = withAuth(async (req) => {
-  const segments = new URL(req.url).pathname.split("/");
-  const testId = segments[segments.indexOf("tests") + 1];
+export const GET = withAuth(async (req, user, context) => {
+  const { testId } = await context.params;
 
   const invites = await prisma.testInvite.findMany({
     where: { testId },
@@ -104,11 +101,9 @@ export const GET = withAuth(async (req) => {
 
 const revokeSchema = z.object({ inviteId: z.string() });
 
-export const DELETE = withAuth(async (req, user) => {
+export const DELETE = withAuth(async (req, user, context) => {
+  const { testId } = await context.params;
   try {
-    const segments = new URL(req.url).pathname.split("/");
-    const testId = segments[segments.indexOf("tests") + 1];
-
     const body = await req.json();
     const { inviteId } = revokeSchema.parse(body);
 

@@ -28,7 +28,19 @@ export async function POST(req: NextRequest) {
     const passwordHash = await hashPassword(password)
 
     const user = await prisma.user.create({
-      data: { name, email, passwordHash, role },
+      data: {
+        name,
+        email,
+        passwordHash,
+        role,
+        ...(role === "RECRUITER"
+          ? {
+              company: {
+                create: { name: "My Company" },
+              },
+            }
+          : {}),
+      },
     })
 
     const token = signToken({

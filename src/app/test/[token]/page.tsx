@@ -64,6 +64,7 @@ const PROMPT_TYPES = [
   { value: "EXPLAIN", label: "Explain", description: "Explain the concept" },
   { value: "DEBUG", label: "Debug", description: "Help find the bug" },
   { value: "OPTIMIZE", label: "Optimize", description: "Suggest optimization" },
+  { value: "GENERATE", label: "Generate", description: "Generate a code snippet" },
 ];
 
 export default function TestPage() {

@@ -34,7 +34,7 @@ export default function LoginPage() {
       if (data.user.role === "RECRUITER") {
         router.push("/dashboard")
       } else {
-        router.push("/")
+        router.push("/candidate")
       }
     } catch (error: unknown) {
       toast.error("Login failed", { description: (error as Error).message })

@@ -144,6 +144,13 @@ export const POST = withAuth(async (req, user) => {
     const passed = results.filter((r) => r.passed).length
     const total = results.length
 
+    // calculate tokens used for this specific problem
+    const tokenLogs = await prisma.tokenLog.aggregate({
+      where: { submissionId, problemId },
+      _sum: { tokensUsed: true },
+    })
+    const problemTokensUsed = tokenLogs._sum.tokensUsed ?? 0
+
     // save answer
     await prisma.answer.create({
       data: {
@@ -153,7 +160,7 @@ export const POST = withAuth(async (req, user) => {
         language,
         testCasesPassed: passed,
         testCasesTotal: total,
-        tokensUsed: submission.tokensUsed,
+        tokensUsed: problemTokensUsed,
       },
     })
 

@@ -7,10 +7,9 @@ const schema = z.object({
   status: z.enum(["DRAFT", "ACTIVE", "CLOSED"]),
 });
 
-export const PATCH = withAuth(async (req, user) => {
+export const PATCH = withAuth(async (req, user, context) => {
   try {
-    const segments = new URL(req.url).pathname.split("/");
-    const testId = segments[segments.indexOf("tests") + 1];
+    const { testId } = await context.params;
 
     const body = await req.json();
     const { status } = schema.parse(body);
@@ -54,6 +53,37 @@ export const PATCH = withAuth(async (req, user) => {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 422 });
     }
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
+  }
+}, "RECRUITER");
+
+export const GET = withAuth(async (req, user, context) => {
+  try {
+    const { testId } = await context.params;
+
+    const test = await prisma.test.findFirst({
+      where: {
+        id: testId,
+        company: { users: { some: { id: user.userId } } },
+      },
+      include: {
+        problems: { include: { problem: true } },
+        invites: true,
+      },
+    });
+
+    if (!test) {
+      return NextResponse.json(
+        { error: "Test not found or access denied" },
+        { status: 403 },
+      );
+    }
+
+    return NextResponse.json({ test });
+  } catch (error) {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

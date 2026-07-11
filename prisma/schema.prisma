@@ -24,18 +24,7 @@ model User {
   invites     TestInvite[]
   submissions Submission[]
   tokenLogs   TokenLog[]
-  sessions    Session[]
   createdProblems Problem[] @relation("CreatedProblems")
-}
-
-model Session {
-  id        String   @id @default(cuid())
-  userId    String
-  token     String   @unique
-  expiresAt DateTime
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum Role {

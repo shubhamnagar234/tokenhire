@@ -1,16 +1,19 @@
 import { NextRequest, NextResponse } from "next/server"
 import { verifyToken, JWTPayload } from "@/lib/auth/jwt"
 
+type RouteContext = { params: Promise<Record<string, string>> }
+
 type RouteHandler = (
   req: NextRequest,
-  user: JWTPayload
+  user: JWTPayload,
+  context: RouteContext
 ) => Promise<NextResponse>
 
 export const withAuth = (
   handler: RouteHandler,
   requiredRole?: "RECRUITER" | "CANDIDATE" | "ADMIN"
 ) => {
-  return async (req: NextRequest): Promise<NextResponse> => {
+  return async (req: NextRequest, context: RouteContext): Promise<NextResponse> => {
     const token = req.cookies.get("auth_token")?.value
 
     if (!token) {
@@ -30,7 +33,7 @@ export const withAuth = (
         )
       }
 
-      return handler(req, user)
+      return handler(req, user, context)
     } catch {
       return NextResponse.json(
         { error: "Unauthorized — invalid token" },

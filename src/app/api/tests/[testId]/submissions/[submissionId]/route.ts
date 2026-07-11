@@ -2,10 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
 
-export const GET = withAuth(async (req, user) => {
-  const segments = new URL(req.url).pathname.split("/");
-  const testId = segments[segments.indexOf("tests") + 1];
-  const submissionId = segments[segments.indexOf("submissions") + 1];
+export const GET = withAuth(async (req, user, context) => {
+  const { testId, submissionId } = await context.params;
 
   // Verify recruiter owns the test that this submission belongs to
   const submission = await prisma.submission.findFirst({
