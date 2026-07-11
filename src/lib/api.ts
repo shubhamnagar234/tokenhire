@@ -1,22 +1,21 @@
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
-
 export async function apiRequest<T>(
   endpoint: string,
-  options: RequestInit = {}
+  options: RequestInit = {},
 ): Promise<T> {
-  const res = await fetch(`${BASE_URL}${endpoint}`, {
+  const res = await fetch(endpoint, {
     ...options,
+    credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...options.headers,
     },
-  })
+  });
 
-  const data = await res.json()
+  const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.error ?? "Request failed")
+    throw new Error(data.error ?? "Request failed");
   }
 
-  return data
+  return data;
 }

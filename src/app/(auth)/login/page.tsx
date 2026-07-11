@@ -1,58 +1,69 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { useAuthStore } from "@/lib/store/auth"
-import { apiRequest } from "@/lib/api"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
-import Link from "next/link"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthStore } from "@/lib/store/auth";
+import { apiRequest } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Logo } from "@/components/ui/logo";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { toast } from "sonner";
+import Link from "next/link";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const { setAuth } = useAuthStore()
-  const [loading, setLoading] = useState(false)
-  const [form, setForm] = useState({ email: "", password: "" })
+  const router = useRouter();
+  const { setAuth } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "" });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
-      const data = await apiRequest<{ user: { id: string; name: string; email: string; role: "RECRUITER" | "CANDIDATE" | "ADMIN" } }>("/api/auth/login", {
+      const data = await apiRequest<{
+        user: {
+          id: string;
+          name: string;
+          email: string;
+          role: "RECRUITER" | "CANDIDATE" | "ADMIN";
+        };
+      }>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify(form),
-      })
+      });
 
-      setAuth(data.user)
+      setAuth(data.user);
 
-      toast.success("Welcome back!", { description: `Logged in as ${data.user.name}` })
+      toast.success("Welcome back!", {
+        description: `Logged in as ${data.user.name}`,
+      });
 
       if (data.user.role === "RECRUITER") {
-        router.push("/dashboard")
+        router.push("/dashboard");
       } else {
-        router.push("/candidate")
+        router.push("/candidate");
       }
     } catch (error: unknown) {
-      toast.error("Login failed", { description: (error as Error).message })
+      toast.error("Login failed", { description: (error as Error).message });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <div className="flex items-center gap-2 mb-2">
-            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">T</span>
-            </div>
-            <span className="font-bold text-lg">TokenHire</span>
-          </div>
+          <Logo />
           <CardTitle className="text-2xl">Sign in</CardTitle>
           <CardDescription>Enter your credentials to continue</CardDescription>
         </CardHeader>
@@ -93,5 +104,5 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

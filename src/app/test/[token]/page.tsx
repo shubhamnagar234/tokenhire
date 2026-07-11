@@ -6,7 +6,11 @@ import { useAuthStore } from "@/lib/store/auth";
 import { apiRequest } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { gsap } from "gsap";
@@ -64,7 +68,11 @@ const PROMPT_TYPES = [
   { value: "EXPLAIN", label: "Explain", description: "Explain the concept" },
   { value: "DEBUG", label: "Debug", description: "Help find the bug" },
   { value: "OPTIMIZE", label: "Optimize", description: "Suggest optimization" },
-  { value: "GENERATE", label: "Generate", description: "Generate a code snippet" },
+  {
+    value: "GENERATE",
+    label: "Generate",
+    description: "Generate a code snippet",
+  },
 ];
 
 export default function TestPage() {
@@ -98,27 +106,10 @@ export default function TestPage() {
     if (!submission) return;
 
     try {
-      const data = await apiRequest<{
-        scores: {
-          composite: number;
-          correctness: number;
-          time: number;
-          tokenSaving: number;
-          codeQuality: number;
-        };
-        summary: {
-          timeUsedMins: number;
-          tokensUsed: number;
-          tokenBudget: number;
-          testCasesPassed: number;
-          testCasesTotal: number;
-        };
-      }>(`/api/test/${inviteToken}/finish`, {
+      await apiRequest(`/api/test/${inviteToken}/finish`, {
         method: "POST",
         body: JSON.stringify({ submissionId: submission.id }),
       });
-      // store scores for complete page
-      sessionStorage.setItem("tokenhire-scores", JSON.stringify(data));
       toast.success("Test submitted!");
       router.push(`/test/${inviteToken}/complete`);
     } catch (err: unknown) {
@@ -130,19 +121,32 @@ export default function TestPage() {
     Promise.resolve().then(() => setHydrated(true));
   }, []);
 
-  const { data: fetchPayload, isLoading } = useQuery({
+  const {
+    data: fetchPayload,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["test-data", inviteToken],
     queryFn: async () => {
       if (user?.role !== "CANDIDATE") {
         throw new Error("Only candidates can take tests");
       }
       const data = await apiRequest<TestData>(`/api/test/${inviteToken}`);
-      const sub = await apiRequest<{ submission: Submission }>(`/api/test/${inviteToken}/start`, { method: "POST" });
-      
-      const elapsed = Math.floor((Date.now() - new Date(sub.submission.startedAt).getTime()) / 1000);
+      const sub = await apiRequest<{ submission: Submission }>(
+        `/api/test/${inviteToken}/start`,
+        { method: "POST" },
+      );
+
+      const elapsed = Math.floor(
+        (Date.now() - new Date(sub.submission.startedAt).getTime()) / 1000,
+      );
       const totalSecs = data.invite.test.timeLimitMins * 60;
-      
-      return { testData: data, submission: sub.submission, initialTimeLeft: Math.max(0, totalSecs - elapsed) };
+
+      return {
+        testData: data,
+        submission: sub.submission,
+        initialTimeLeft: Math.max(0, totalSecs - elapsed),
+      };
     },
     enabled: !!user && hydrated,
     staleTime: Infinity,
@@ -268,10 +272,38 @@ export default function TestPage() {
     }
   };
 
-  if (loading) {
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading test...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md border-red-500/20 bg-red-500/5">
+          <CardHeader>
+            <CardTitle className="text-red-500">Could not load test</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">{(error as Error).message}</p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loading || isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <header className="px-6 py-4 flex items-center justify-between border-b border-border">
+          <Skeleton className="h-9 w-32" />
+          <Skeleton className="h-9 w-48" />
+        </header>
+        <div className="flex-1 flex overflow-hidden">
+          <div className="w-1/3 border-r border-border p-6 space-y-4">
+            <Skeleton className="h-8 w-64" />
+            <Skeleton className="h-40 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+          <div className="flex-1 p-6">
+            <Skeleton className="h-full w-full rounded-xl" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -324,7 +356,7 @@ export default function TestPage() {
                     ? "bg-yellow-500"
                     : "bg-blue-500"
               }`}
-              style={{ width: "0%" }}
+              style={{ width: `${tokenPct}%` }}
             />
           </div>
           <span className="text-xs text-muted-foreground">{tokenPct}%</span>
@@ -384,9 +416,11 @@ export default function TestPage() {
                   {problem.difficulty}
                 </Badge>
               </div>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {problem.description}
-              </p>
+              <div className="text-sm text-muted-foreground leading-relaxed [&>h1]:text-lg [&>h1]:font-bold [&>h2]:text-base [&>h2]:font-bold [&>p]:mb-4 [&>ul]:list-disc [&>ul]:ml-5 [&>pre]:bg-secondary [&>pre]:p-2 [&>pre]:rounded-md [&>code]:bg-secondary [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded-md">
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {problem.description}
+                </ReactMarkdown>
+              </div>
             </div>
 
             {/* Test cases */}

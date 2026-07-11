@@ -6,6 +6,7 @@ import { useAuthStore } from "@/lib/store/auth";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -236,8 +237,20 @@ export default function TestDetailPage() {
 
   if (!hydrated || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border px-6 py-4 flex items-center gap-4">
+          <Skeleton className="h-9 w-20" />
+          <Skeleton className="h-6 w-32" />
+          <Skeleton className="h-6 w-16 ml-2" />
+        </header>
+        <main className="max-w-6xl mx-auto p-6 space-y-8">
+          <Skeleton className="h-10 w-full max-w-sm rounded-md" />
+          <div className="space-y-4">
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+            <Skeleton className="h-20 w-full rounded-xl" />
+          </div>
+        </main>
       </div>
     );
   }

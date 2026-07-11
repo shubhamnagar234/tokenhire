@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
@@ -81,8 +82,21 @@ export default function NewTestPage() {
 
   if (!hydrated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border px-6 py-4 flex items-center gap-4">
+          <Skeleton className="h-9 w-20" />
+          <Skeleton className="h-6 w-32" />
+        </header>
+        <main className="max-w-4xl mx-auto p-6">
+          <div className="space-y-6">
+            <Skeleton className="h-[200px] w-full rounded-xl" />
+            <Skeleton className="h-[200px] w-full rounded-xl" />
+            <div className="flex justify-end gap-4">
+              <Skeleton className="h-10 w-24" />
+              <Skeleton className="h-10 w-32" />
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
@@ -169,20 +183,22 @@ export default function NewTestPage() {
               <CardTitle className="text-base">AI Assistant Model</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {([
-                {
-                  value: "GEMINI_2_5_FLASH",
-                  label: "Gemini 2.5 Flash",
-                  desc: "Fast & cost-effective — ideal for most assessments",
-                  badge: "Recommended",
-                },
-                {
-                  value: "GEMINI_2_5_PRO",
-                  label: "Gemini 2.5 Pro",
-                  desc: "Advanced reasoning — best for complex technical roles",
-                  badge: "Pro",
-                },
-              ] as const).map((model) => (
+              {(
+                [
+                  {
+                    value: "GEMINI_2_5_FLASH",
+                    label: "Gemini 2.5 Flash",
+                    desc: "Fast & cost-effective — ideal for most assessments",
+                    badge: "Recommended",
+                  },
+                  {
+                    value: "GEMINI_2_5_PRO",
+                    label: "Gemini 2.5 Pro",
+                    desc: "Advanced reasoning — best for complex technical roles",
+                    badge: "Pro",
+                  },
+                ] as const
+              ).map((model) => (
                 <button
                   key={model.value}
                   type="button"
@@ -195,7 +211,9 @@ export default function NewTestPage() {
                 >
                   <div>
                     <p className="text-sm font-medium">{model.label}</p>
-                    <p className="text-xs text-muted-foreground">{model.desc}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {model.desc}
+                    </p>
                   </div>
                   <span
                     className={`text-xs font-semibold px-2 py-0.5 rounded-full ${

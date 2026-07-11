@@ -7,6 +7,8 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Logo } from "@/components/ui/logo";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
@@ -71,13 +73,9 @@ export default function CandidateDashboardPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
-          </div>
-          <span className="font-bold text-lg">TokenHire</span>
-        </div>
+        <Logo />
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <span className="text-sm text-muted-foreground">
             Welcome, {user?.name}
           </span>
@@ -106,7 +104,7 @@ export default function CandidateDashboardPage() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
               <p className="text-muted-foreground">
-                You haven't been invited to any assessments yet.
+                You haven&apos;t been invited to any assessments yet.
               </p>
             </CardContent>
           </Card>
@@ -119,7 +117,10 @@ export default function CandidateDashboardPage() {
               const canStart =
                 (invite.status === "PENDING" || invite.status === "ACCEPTED") &&
                 !isExpired;
-              const displayStatus = isExpired && invite.status !== "COMPLETED" ? "EXPIRED" : invite.status;
+              const displayStatus =
+                isExpired && invite.status !== "COMPLETED"
+                  ? "EXPIRED"
+                  : invite.status;
 
               return (
                 <Card key={invite.token}>
@@ -152,13 +153,13 @@ export default function CandidateDashboardPage() {
                           </span>
                         )}
                       </div>
-                      
+
                       {canStart && (
                         <Link href={`/test/${invite.token}`}>
                           <Button size="sm">Start Assessment</Button>
                         </Link>
                       )}
-                      
+
                       {displayStatus === "COMPLETED" && invite.submission && (
                         <div className="flex gap-2">
                           <Badge variant="outline" className="text-xs">

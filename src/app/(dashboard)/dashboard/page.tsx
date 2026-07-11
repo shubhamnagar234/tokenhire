@@ -12,6 +12,8 @@ import Link from "next/link";
 import { toast } from "sonner";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { Logo } from "@/components/ui/logo";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Test {
   id: string;
@@ -95,8 +97,27 @@ export default function DashboardPage() {
 
   if (!hydrated || isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-muted-foreground">Loading...</p>
+      <div className="min-h-screen bg-background">
+        <header className="border-b border-border px-6 py-4 flex items-center justify-between">
+          <Logo />
+          <div className="flex items-center gap-4">
+            <Skeleton className="h-9 w-20" />
+          </div>
+        </header>
+        <main className="max-w-6xl mx-auto p-6 space-y-8">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-10 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-[250px] rounded-xl" />
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
@@ -107,12 +128,7 @@ export default function DashboardPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b border-border px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">T</span>
-          </div>
-          <span className="font-bold text-lg">TokenHire</span>
-        </div>
+        <Logo />
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <span className="text-sm text-muted-foreground">{user?.name}</span>
@@ -124,7 +140,7 @@ export default function DashboardPage() {
 
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -156,6 +172,23 @@ export default function DashboardPage() {
             <CardContent>
               <p className="text-3xl font-bold">
                 {tests.reduce((sum, t) => sum + t.invites.length, 0)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-green-500">
+                Completed Tests
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">
+                {tests.reduce(
+                  (sum, t) =>
+                    sum +
+                    t.invites.filter((i) => i.status === "COMPLETED").length,
+                  0,
+                )}
               </p>
             </CardContent>
           </Card>

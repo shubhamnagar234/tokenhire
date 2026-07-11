@@ -1,10 +1,14 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { gsap } from "gsap";
 import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/api";
 
 interface CompletionData {
   scores: {
@@ -24,20 +28,15 @@ interface CompletionData {
 }
 
 export default function TestCompletePage() {
-  const [data, setData] = useState<CompletionData | null>(null);
+  const params = useParams();
+  const token = params.token as string;
   const scoreRef = useRef<HTMLDivElement>(null);
   const cardsRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    Promise.resolve().then(() => {
-      const stored = sessionStorage.getItem("tokenhire-scores");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        setData(parsed);
-        sessionStorage.removeItem("tokenhire-scores");
-      }
-    });
-  }, []);
+  const { data, isLoading, error } = useQuery<CompletionData>({
+    queryKey: ["test-result", token],
+    queryFn: () => apiRequest(`/api/test/${token}/result`),
+  });
 
   // GSAP score reveal animation
   useEffect(() => {
@@ -63,7 +62,15 @@ export default function TestCompletePage() {
     );
   }, [data]);
 
-  if (!data) {
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Skeleton className="h-64 w-96 rounded-xl" />
+      </div>
+    );
+  }
+
+  if (error || !data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center space-y-4">
