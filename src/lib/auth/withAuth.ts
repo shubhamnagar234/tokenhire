@@ -13,8 +13,15 @@ export const withAuth = (
   return async (req: NextRequest): Promise<NextResponse> => {
     const token = req.cookies.get("auth_token")?.value
 
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized — no auth token" },
+        { status: 401 }
+      )
+    }
+
     try {
-      const user = verifyToken(token!)
+      const user = verifyToken(token)
 
       if (requiredRole && user.role !== requiredRole) {
         return NextResponse.json(

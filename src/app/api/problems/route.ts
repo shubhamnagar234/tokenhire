@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withAuth } from "@/lib/auth/withAuth"
 import { z } from "zod"
+import { Prisma } from "@prisma/client"
 
 const schema = z.object({
   title: z.string().min(3),
@@ -26,20 +27,27 @@ export const POST = withAuth(async (req, user) => {
       select: { companyId: true },
     })
 
+    // Create the problem with standard Prisma fields
     const problem = await prisma.problem.create({
       data: {
         title: data.title,
         description: data.description,
         difficulty: data.difficulty,
         tags: data.tags,
-        companyId: recruiter?.companyId ?? null,
-        createdById: user.userId,
         testCases: {
           create: data.testCases,
         },
       },
       include: { testCases: true },
     })
+
+    // Patch the company scope fields via raw SQL (avoids stale Prisma type cache)
+    await prisma.$executeRaw`
+      UPDATE "Problem"
+      SET "companyId" = ${recruiter?.companyId ?? null},
+          "createdById" = ${user.userId}
+      WHERE id = ${problem.id}
+    `
 
     return NextResponse.json({ problem })
   } catch (error) {
@@ -57,21 +65,24 @@ export const GET = withAuth(async (req, user) => {
     select: { companyId: true },
   })
 
-  // Scope problems to this company only.
-  // Problems created before the migration (companyId = null) are also returned
-  // for the recruiter who created them (via createdById), providing backward compatibility.
-  const problems = await prisma.problem.findMany({
-    where: {
-      OR: [
-        // Problems explicitly scoped to this company
-        ...(recruiter?.companyId ? [{ companyId: recruiter.companyId }] : []),
-        // Problems created by this user (backward compat for pre-migration data)
-        { createdById: user.userId },
-      ],
-    },
-    include: { testCases: true },
-    orderBy: { title: "asc" },
-  })
+  // Scope problems to this company only using raw SQL to avoid stale Prisma type cache.
+  // Returns problems with matching companyId OR created by this user (backward compat).
+  const problems = await prisma.$queryRaw<Prisma.ProblemGetPayload<{ include: { testCases: true } }>[]>`
+    SELECT p.*,
+           COALESCE(
+             json_agg(tc.*) FILTER (WHERE tc.id IS NOT NULL),
+             '[]'
+           ) AS "testCases"
+    FROM "Problem" p
+    LEFT JOIN "TestCase" tc ON tc."problemId" = p.id
+    WHERE
+      ${recruiter?.companyId
+        ? Prisma.sql`p."companyId" = ${recruiter.companyId}`
+        : Prisma.sql`p."createdById" = ${user.userId}`}
+      OR p."createdById" = ${user.userId}
+    GROUP BY p.id
+    ORDER BY p.title ASC
+  `
 
   return NextResponse.json({ problems })
 }, "RECRUITER")

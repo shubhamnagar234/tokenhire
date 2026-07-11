@@ -35,6 +35,28 @@ export const POST = withAuth(async (req, user) => {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + expiresInDays);
 
+    // Block duplicate invites — check if any submitted email already has
+    // an active (non-expired, non-completed) invite for this test
+    const duplicates = await prisma.testInvite.findMany({
+      where: {
+        testId,
+        email: { in: emails },
+        status: { in: ["PENDING", "ACCEPTED"] },
+        expiresAt: { gt: new Date() },
+      },
+      select: { email: true },
+    });
+
+    if (duplicates.length > 0) {
+      const dupeEmails = duplicates.map((d) => d.email);
+      return NextResponse.json(
+        {
+          error: `Active invite already exists for: ${dupeEmails.join(", ")}. Revoke it first before re-inviting.`,
+        },
+        { status: 409 },
+      );
+    }
+
     // create invites for all emails
     const invites = await Promise.all(
       emails.map((email) =>
