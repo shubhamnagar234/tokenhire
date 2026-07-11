@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
 import { z } from "zod";
+import { sendInviteEmail } from "@/lib/email";
 
 const schema = z.object({
   emails: z.array(z.string().email()).min(1).max(50),
@@ -21,6 +22,7 @@ export const POST = withAuth(async (req, user, context) => {
         id: testId,
         company: { users: { some: { id: user.userId } } },
       },
+      include: { company: true },
     });
 
     if (!test) {
@@ -71,6 +73,13 @@ export const POST = withAuth(async (req, user, context) => {
       link: `${process.env.NEXT_PUBLIC_APP_URL}/test/${invite.token}`,
       expiresAt: invite.expiresAt,
     }));
+
+    // send emails asynchronously (don't block the response)
+    Promise.all(
+      inviteLinks.map((invite) =>
+        sendInviteEmail(invite.email, test.title, invite.link, test.company.name)
+      )
+    ).catch((err) => console.error("Failed to send invite emails", err));
 
     return NextResponse.json({ invites: inviteLinks });
   } catch (error) {
