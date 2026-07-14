@@ -43,88 +43,87 @@ export const POST = withAuth(async (req, user) => {
       );
     }
 
-  // get current submission
-  const submission = await prisma.submission.findUnique({
-    where: { id: submissionId },
-    include: { invite: { include: { test: true } } },
-  });
-
-  if (!submission) {
-    return NextResponse.json(
-      { error: "Submission not found" },
-      { status: 404 },
-    );
-  }
-
-  if (submission.candidateId !== user.userId) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
-
-  // check token budget
-  const tokensRemaining = submission.tokenBudget - submission.tokensUsed;
-  if (tokensRemaining <= 0) {
-    return NextResponse.json(
-      { error: "Token budget exhausted — no more AI assistance available" },
-      { status: 402 },
-    );
-  }
-
-  // Map the Prisma AIModel enum to the LangChain model string
-  const MODEL_MAP: Record<string, string> = {
-    GEMINI_2_5_FLASH: "gemini-2.5-flash",
-    GEMINI_2_5_PRO: "gemini-2.5-pro",
-  };
-  const modelName =
-    MODEL_MAP[submission.invite.test.aiModel] ?? "gemini-2.5-flash";
-
-  // LangChain + Gemini call
-  const llm = new ChatGoogleGenerativeAI({
-    model: modelName,
-    apiKey: process.env.GEMINI_API_KEY,
-    maxOutputTokens: Math.min(500, tokensRemaining),
-  });
-
-  const systemPrompt = SYSTEM_PROMPTS[promptType] ?? SYSTEM_PROMPTS.HINT;
-
-  const messages = [
-    new SystemMessage(
-      `You are a coding assistant during a technical assessment. ${systemPrompt}`,
-    ),
-    new HumanMessage(prompt),
-  ];
-
-  const aiResult = await llm.invoke(messages);
-  const aiResponse = aiResult.content as string;
-
-  // Use actual token count from Gemini's usage metadata (prompt + output tokens).
-  // LangChain exposes this as usage_metadata.total_tokens on AIMessageChunk.
-  // Fall back to the character heuristic only if metadata is unavailable.
-  const actualTokens =
-    aiResult.usage_metadata?.total_tokens ??
-    Math.ceil((prompt.length + aiResponse.length) / 4);
-  const tokensToDeduct = Math.min(actualTokens, tokensRemaining);
-
-
-  // deduct tokens + log atomically
-  await prisma.$transaction([
-    prisma.submission.update({
+    // get current submission
+    const submission = await prisma.submission.findUnique({
       where: { id: submissionId },
-      data: { tokensUsed: { increment: tokensToDeduct } },
-    }),
-    prisma.tokenLog.create({
-      data: {
-        candidateId: user.userId,
-        submissionId,
-        problemId,
-        tokensUsed: tokensToDeduct,
-        promptType,
-        prompt,
-        response: aiResponse,
-      },
-    }),
-  ]);
+      include: { invite: { include: { test: true } } },
+    });
 
-  const newTokensUsed = submission.tokensUsed + tokensToDeduct;
+    if (!submission) {
+      return NextResponse.json(
+        { error: "Submission not found" },
+        { status: 404 },
+      );
+    }
+
+    if (submission.candidateId !== user.userId) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // check token budget
+    const tokensRemaining = submission.tokenBudget - submission.tokensUsed;
+    if (tokensRemaining <= 0) {
+      return NextResponse.json(
+        { error: "Token budget exhausted — no more AI assistance available" },
+        { status: 402 },
+      );
+    }
+
+    // Map the Prisma AIModel enum to the LangChain model string
+    const MODEL_MAP: Record<string, string> = {
+      GEMINI_2_5_FLASH: "gemini-2.5-flash",
+      GEMINI_2_5_PRO: "gemini-2.5-pro",
+    };
+    const modelName =
+      MODEL_MAP[submission.invite.test.aiModel] ?? "gemini-2.5-flash";
+
+    // LangChain + Gemini call
+    const llm = new ChatGoogleGenerativeAI({
+      model: modelName,
+      apiKey: process.env.GEMINI_API_KEY,
+      maxOutputTokens: Math.min(500, tokensRemaining),
+    });
+
+    const systemPrompt = SYSTEM_PROMPTS[promptType] ?? SYSTEM_PROMPTS.HINT;
+
+    const messages = [
+      new SystemMessage(
+        `You are a coding assistant during a technical assessment. ${systemPrompt}`,
+      ),
+      new HumanMessage(prompt),
+    ];
+
+    const aiResult = await llm.invoke(messages);
+    const aiResponse = aiResult.content as string;
+
+    // Use actual token count from Gemini's usage metadata (prompt + output tokens).
+    // LangChain exposes this as usage_metadata.total_tokens on AIMessageChunk.
+    // Fall back to the character heuristic only if metadata is unavailable.
+    const actualTokens =
+      aiResult.usage_metadata?.total_tokens ??
+      Math.ceil((prompt.length + aiResponse.length) / 4);
+    const tokensToDeduct = Math.min(actualTokens, tokensRemaining);
+
+    // deduct tokens + log atomically
+    await prisma.$transaction([
+      prisma.submission.update({
+        where: { id: submissionId },
+        data: { tokensUsed: { increment: tokensToDeduct } },
+      }),
+      prisma.tokenLog.create({
+        data: {
+          candidateId: user.userId,
+          submissionId,
+          problemId,
+          tokensUsed: tokensToDeduct,
+          promptType,
+          prompt,
+          response: aiResponse,
+        },
+      }),
+    ]);
+
+    const newTokensUsed = submission.tokensUsed + tokensToDeduct;
 
     return NextResponse.json({
       response: aiResponse,
@@ -143,3 +142,4 @@ export const POST = withAuth(async (req, user) => {
     );
   }
 }, "CANDIDATE");
+

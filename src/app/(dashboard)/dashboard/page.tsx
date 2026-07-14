@@ -160,7 +160,8 @@ export default function DashboardPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">{tests.length}</p>
+              {/* Use server-side total — tests.length is only the current page */}
+              <p className="text-3xl font-bold">{data?.pagination?.total ?? tests.length}</p>
             </CardContent>
           </Card>
           <Card>

@@ -55,7 +55,7 @@ export const GET = withAuth(async (req, user, context) => {
         rank: index + 1,
         submissionId: sub.id,
         candidate: {
-          name: invite.candidate?.name,
+          name: invite.candidate?.name ?? "Unknown Candidate",
           email: invite.candidate?.email ?? invite.email,
         },
         scores: {

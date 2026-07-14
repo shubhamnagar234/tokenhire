@@ -2,7 +2,6 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 import { withAuth } from "@/lib/auth/withAuth"
 import { z } from "zod"
-import { Prisma } from "@prisma/client"
 
 const schema = z.object({
   title: z.string().min(3),
@@ -59,24 +58,18 @@ export const GET = withAuth(async (req, user) => {
     select: { companyId: true },
   })
 
-  // Scope problems to this company only using raw SQL to avoid stale Prisma type cache.
-  // Returns problems with matching companyId OR created by this user (backward compat).
-  const problems = await prisma.$queryRaw<Prisma.ProblemGetPayload<{ include: { testCases: true } }>[]>`
-    SELECT p.*,
-           COALESCE(
-             json_agg(tc.*) FILTER (WHERE tc.id IS NOT NULL),
-             '[]'
-           ) AS "testCases"
-    FROM "Problem" p
-    LEFT JOIN "TestCase" tc ON tc."problemId" = p.id
-    WHERE
-      ${recruiter?.companyId
-        ? Prisma.sql`p."companyId" = ${recruiter.companyId}`
-        : Prisma.sql`p."createdById" = ${user.userId}`}
-      OR p."createdById" = ${user.userId}
-    GROUP BY p.id
-    ORDER BY p.title ASC
-  `
+  // Scope problems to this company OR created by this user (backward compat).
+  // Using Prisma ORM avoids the data-isolation bug that the raw SQL OR clause had.
+  const problems = await prisma.problem.findMany({
+    where: {
+      OR: [
+        ...(recruiter?.companyId ? [{ companyId: recruiter.companyId }] : []),
+        { createdById: user.userId },
+      ],
+    },
+    include: { testCases: true },
+    orderBy: { title: "asc" },
+  })
 
   return NextResponse.json({ problems })
 }, "RECRUITER")

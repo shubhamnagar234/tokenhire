@@ -98,12 +98,15 @@ export default function TestPage() {
   const [aiLoading, setAiLoading] = useState(false);
 
   const tokenBarRef = useRef<HTMLDivElement>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const inviteToken = params.token as string;
 
   const [hydrated, setHydrated] = useState(false);
 
   const handleFinish = useCallback(async () => {
     if (!submission) return;
+    // Clear the timer before the async call to prevent double-fire
+    if (intervalRef.current) clearInterval(intervalRef.current);
 
     try {
       await apiRequest(`/api/test/${inviteToken}/finish`, {
@@ -148,7 +151,8 @@ export default function TestPage() {
         initialTimeLeft: Math.max(0, totalSecs - elapsed),
       };
     },
-    enabled: !!user && hydrated,
+    // Only enable for candidates — prevents recruiters from seeing the error card
+    enabled: !!user && hydrated && user.role === "CANDIDATE",
     staleTime: Infinity,
     retry: false,
     refetchOnWindowFocus: false,
@@ -175,21 +179,34 @@ export default function TestPage() {
     }
   }, [hydrated, user, router, isLoading]);
 
-  // countdown timer
+  // countdown timer — initialised once when timeLeft is first set (> 0)
+  // Uses a ref so the interval is never restarted on every tick
   useEffect(() => {
     if (!timeLeft) return;
-    const interval = setInterval(() => {
+    if (intervalRef.current) return; // already running
+
+    intervalRef.current = setInterval(() => {
       setTimeLeft((t) => {
         if (t <= 1) {
-          clearInterval(interval);
+          if (intervalRef.current) {
+            clearInterval(intervalRef.current);
+            intervalRef.current = null;
+          }
           handleFinish();
           return 0;
         }
         return t - 1;
       });
     }, 1000);
-    return () => clearInterval(interval);
-  }, [timeLeft, handleFinish]);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timeLeft]); // intentionally excludes handleFinish — timer starts once
 
   // GSAP token bar animation
   useEffect(() => {
