@@ -17,6 +17,13 @@ export const POST = withAuth(async (req, user, context) => {
     )
   }
 
+  if (invite.email.toLowerCase() !== user.email.toLowerCase()) {
+    return NextResponse.json(
+      { error: "This invite was sent to a different email address" },
+      { status: 403 }
+    )
+  }
+
   if (invite.status === "COMPLETED") {
     return NextResponse.json(
       { error: "Already completed" },
