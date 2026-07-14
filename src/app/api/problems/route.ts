@@ -27,27 +27,21 @@ export const POST = withAuth(async (req, user) => {
       select: { companyId: true },
     })
 
-    // Create the problem with standard Prisma fields
+    // Create the problem with standard Prisma fields and relational scoping
     const problem = await prisma.problem.create({
       data: {
         title: data.title,
         description: data.description,
         difficulty: data.difficulty,
         tags: data.tags,
+        companyId: recruiter?.companyId ?? undefined,
+        createdById: user.userId,
         testCases: {
           create: data.testCases,
         },
       },
       include: { testCases: true },
     })
-
-    // Patch the company scope fields via raw SQL (avoids stale Prisma type cache)
-    await prisma.$executeRaw`
-      UPDATE "Problem"
-      SET "companyId" = ${recruiter?.companyId ?? null},
-          "createdById" = ${user.userId}
-      WHERE id = ${problem.id}
-    `
 
     return NextResponse.json({ problem })
   } catch (error) {
