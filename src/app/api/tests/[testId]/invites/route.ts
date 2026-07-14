@@ -96,6 +96,21 @@ export const POST = withAuth(async (req, user, context) => {
 export const GET = withAuth(async (req, user, context) => {
   const { testId } = await context.params;
 
+  // verify recruiter owns this test
+  const test = await prisma.test.findFirst({
+    where: {
+      id: testId,
+      company: { users: { some: { id: user.userId } } },
+    },
+  });
+
+  if (!test) {
+    return NextResponse.json(
+      { error: "Test not found or access denied" },
+      { status: 403 },
+    );
+  }
+
   const invites = await prisma.testInvite.findMany({
     where: { testId },
     include: {
