@@ -8,27 +8,30 @@ const schema = z.object({
   description: z.string().optional(),
   timeLimitMins: z.number().min(10).max(180),
   tokenBudget: z.number().min(100).max(10000),
-  companyId: z.string(),
   weightCorrectness: z.number().default(0.5),
   weightTime: z.number().default(0.2),
   weightTokenSaving: z.number().default(0.2),
   weightCodeQuality: z.number().default(0.1),
   aiModel: z.enum(["GEMINI_2_5_FLASH", "GEMINI_2_5_PRO"]).default("GEMINI_2_5_FLASH"),
-})
+}).refine(
+  (d) => Math.abs(d.weightCorrectness + d.weightTime + d.weightTokenSaving + d.weightCodeQuality - 1.0) < 0.01,
+  { message: "Scoring weights must sum to 1.0" }
+)
 
 export const POST = withAuth(async (req, user) => {
   try {
     const body = await req.json()
     const data = schema.parse(body)
 
-    // verify recruiter belongs to this company
-    const company = await prisma.company.findFirst({
-      where: { id: data.companyId, users: { some: { id: user.userId } } },
+    // fetch recruiter's own company — prevents IDOR and company-overwrite bugs
+    const recruiter = await prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { companyId: true },
     })
 
-    if (!company) {
+    if (!recruiter?.companyId) {
       return NextResponse.json(
-        { error: "Company not found or access denied" },
+        { error: "Recruiter has no associated company" },
         { status: 403 }
       )
     }
@@ -39,7 +42,7 @@ export const POST = withAuth(async (req, user) => {
         description: data.description,
         timeLimitMins: data.timeLimitMins,
         tokenBudget: data.tokenBudget,
-        companyId: data.companyId,
+        companyId: recruiter.companyId,
         weightCorrectness: data.weightCorrectness,
         weightTime: data.weightTime,
         weightTokenSaving: data.weightTokenSaving,

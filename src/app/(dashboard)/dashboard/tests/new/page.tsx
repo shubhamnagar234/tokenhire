@@ -18,7 +18,6 @@ export default function NewTestPage() {
   const hydrated = useHydrated();
   const { user } = useAuthStore();
   const [loading, setLoading] = useState(false);
-  const [companyId, setCompanyId] = useState("");
   const [form, setForm] = useState({
     title: "",
     description: "",
@@ -38,29 +37,14 @@ export default function NewTestPage() {
     }
   }, [hydrated, user, router]);
 
-  const handleCreateCompanyAndTest = async (e: React.FormEvent) => {
+  const handleCreateTest = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      // create company if not exists
-      let cId = companyId;
-      if (!cId) {
-        const companyData = await apiRequest<{ company: { id: string } }>(
-          "/api/company",
-          {
-            method: "POST",
-            body: JSON.stringify({ name: `${user?.name}'s Company` }),
-          },
-        );
-        cId = companyData.company.id;
-        setCompanyId(cId);
-      }
-
-      // create test
       await apiRequest("/api/tests", {
         method: "POST",
-        body: JSON.stringify({ ...form, companyId: cId }),
+        body: JSON.stringify({ ...form }),
       });
 
       toast.success("Test created!");
@@ -113,7 +97,7 @@ export default function NewTestPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8">
-        <form onSubmit={handleCreateCompanyAndTest} className="space-y-6">
+        <form onSubmit={handleCreateTest} className="space-y-6">
           {/* Basic info */}
           <Card>
             <CardHeader>

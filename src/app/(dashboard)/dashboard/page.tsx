@@ -27,6 +27,16 @@ interface Test {
   invites: { id: string; status: string }[];
 }
 
+interface TestsResponse {
+  tests: Test[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
 // Valid status transitions
 const TRANSITIONS: Record<
   string,
@@ -56,6 +66,7 @@ export default function DashboardPage() {
   const { user, clearAuth } = useAuthStore();
   const queryClient = useQueryClient();
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -65,8 +76,9 @@ export default function DashboardPage() {
   }, [hydrated, user, router]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["tests"],
-    queryFn: () => apiRequest<{ tests: Test[] }>("/api/tests"),
+    queryKey: ["tests", page],
+    queryFn: () =>
+      apiRequest<TestsResponse>(`/api/tests?page=${page}&limit=10`),
     enabled: !!user,
     refetchInterval: 10000,
   });
@@ -297,6 +309,37 @@ export default function DashboardPage() {
                 </Card>
               );
             })}
+          </div>
+        )}
+
+        {/* Pagination controls */}
+        {(data?.pagination?.totalPages ?? 1) > 1 && (
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <Button
+              id="pagination-prev"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
+              ← Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">
+              Page {data?.pagination?.page} of {data?.pagination?.totalPages}
+            </span>
+            <Button
+              id="pagination-next"
+              variant="outline"
+              size="sm"
+              disabled={page >= (data?.pagination?.totalPages ?? 1)}
+              onClick={() =>
+                setPage((p) =>
+                  Math.min(data?.pagination?.totalPages ?? 1, p + 1)
+                )
+              }
+            >
+              Next →
+            </Button>
           </div>
         )}
       </main>
