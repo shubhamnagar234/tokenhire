@@ -58,13 +58,33 @@ export const POST = withAuth(async (req, user) => {
 }, "RECRUITER")
 
 export const GET = withAuth(async (req, user) => {
-  const tests = await prisma.test.findMany({
-    where: {
-      company: { users: { some: { id: user.userId } } },
-    },
-    include: { problems: true, invites: true },
-    orderBy: { createdAt: "desc" },
-  })
+  const { searchParams } = new URL(req.url)
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1"))
+  const limit = Math.max(1, Math.min(100, parseInt(searchParams.get("limit") || "10")))
+  const skip = (page - 1) * limit
 
-  return NextResponse.json({ tests })
+  const where = {
+    company: { users: { some: { id: user.userId } } },
+  }
+
+  const [tests, total] = await Promise.all([
+    prisma.test.findMany({
+      where,
+      include: { problems: true, invites: true },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: limit,
+    }),
+    prisma.test.count({ where }),
+  ])
+
+  return NextResponse.json({
+    tests,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  })
 }, "RECRUITER")
