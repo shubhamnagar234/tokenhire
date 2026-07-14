@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server"
+import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
+import { withAuth } from "@/lib/auth/withAuth"
 
-export async function GET(req: NextRequest) {
-  const segments = new URL(req.url).pathname.split("/")
-  const inviteToken = segments[segments.indexOf("test") + 1]
+export const GET = withAuth(async (req, _user, context) => {
+  const { token: inviteToken } = await context.params
 
   const invite = await prisma.testInvite.findUnique({
     where: { token: inviteToken },
@@ -75,4 +75,4 @@ export async function GET(req: NextRequest) {
       },
     },
   })
-}
+})

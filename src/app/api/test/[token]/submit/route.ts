@@ -181,7 +181,7 @@ export const POST = withAuth(async (req, user) => {
       results: {
         passed,
         total,
-        percentage: Math.round((passed / total) * 100),
+        percentage: total > 0 ? Math.round((passed / total) * 100) : 0,
         details: results.map((r, i) => ({
           testCase: i + 1,
           passed: r.passed,

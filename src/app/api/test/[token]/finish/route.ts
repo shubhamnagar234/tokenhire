@@ -67,9 +67,7 @@ async function getAICodeQualityScore(
 
 export const POST = withAuth(async (req, user) => {
   try {
-    const rawBody = await req.text();
-    const parsed = JSON.parse(rawBody);
-    const body = typeof parsed === "string" ? JSON.parse(parsed) : parsed;
+    const body = await req.json();
     const { submissionId } = schema.parse(body);
 
     const submission = await prisma.submission.findUnique({

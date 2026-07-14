@@ -43,6 +43,12 @@ export const POST = withAuth(async (req, user, context) => {
   })
 
   if (existing) {
+    if (existing.status === "SUBMITTED") {
+      return NextResponse.json(
+        { error: "This test has already been submitted" },
+        { status: 400 }
+      )
+    }
     return NextResponse.json({ submission: existing })
   }
 
