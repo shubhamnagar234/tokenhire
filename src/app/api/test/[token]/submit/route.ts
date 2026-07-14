@@ -67,6 +67,14 @@ async function executeCode(
     if (result.status?.id > 2) break
   }
 
+  if (!result || !result.status || result.status.id <= 2) {
+    return {
+      passed: false,
+      actual: "",
+      error: "Execution timed out. The server took too long to evaluate your code. Please try again.",
+    }
+  }
+
   const actual = (result.stdout ?? "").trim()
   const expected = expectedOutput.trim()
   const passed = actual === expected && result.status?.id === 3
@@ -80,9 +88,9 @@ async function executeCode(
 
 export const POST = withAuth(async (req, user) => {
   try {
-    const rawBody = await req.text()
-    const parsed = JSON.parse(rawBody)
-    const body = typeof parsed === "string" ? JSON.parse(parsed) : parsed
+    const raw = await req.json()
+    // Gracefully handle clients that accidentally double-stringify the JSON
+    const body = typeof raw === "string" ? JSON.parse(raw) : raw
     const { submissionId, problemId, code, language } = schema.parse(body)
 
     if (submitRateLimit) {
