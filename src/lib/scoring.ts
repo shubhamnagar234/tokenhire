@@ -57,6 +57,17 @@ export function calculateScore(input: ScoreInput): ScoreOutput {
     input.weightTokenSaving +
     input.weightCodeQuality
 
+  // safety guard — if all weights are somehow 0, return zeroed scores
+  if (totalWeight === 0) {
+    return {
+      scoreCorrectness: Math.round(scoreCorrectness * 10) / 10,
+      scoreTime: Math.round(scoreTime * 10) / 10,
+      scoreTokenSaving: Math.round(scoreTokenSaving * 10) / 10,
+      scoreCodeQuality: Math.round(scoreCodeQuality * 10) / 10,
+      scoreComposite: 0,
+    }
+  }
+
   const wCorrectness = input.weightCorrectness / totalWeight
   const wTime = input.weightTime / totalWeight
   const wTokenSaving = input.weightTokenSaving / totalWeight

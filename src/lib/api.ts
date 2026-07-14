@@ -14,7 +14,13 @@ export async function apiRequest<T>(
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.error ?? "Request failed");
+    const errMsg =
+      typeof data.error === "string"
+        ? data.error
+        : Array.isArray(data.error)
+          ? data.error.map((e: { message: string }) => e.message).join(", ")
+          : "Request failed";
+    throw new Error(errMsg);
   }
 
   return data;

@@ -229,11 +229,15 @@ export default function TestPage() {
 
   const handleAskAI = async () => {
     if (!aiPrompt.trim() || !submission) return;
+    const problem = testData?.invite.test.problems[activeProblem];
+    if (!problem) {
+      toast.error("No active problem selected.");
+      return;
+    }
     setAiLoading(true);
     setAiResponse("");
 
     try {
-      const problem = testData?.invite.test.problems[activeProblem];
       const data = await apiRequest<{
         response: string;
         tokensUsed: number;
@@ -244,7 +248,7 @@ export default function TestPage() {
         body: JSON.stringify({
           prompt: aiPrompt,
           promptType: aiPromptType,
-          problemId: problem?.id,
+          problemId: problem.id,
           submissionId: submission.id,
         }),
       });

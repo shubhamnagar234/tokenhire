@@ -17,7 +17,12 @@ function AuthInit() {
         const data = await apiRequest<{ user: User }>("/api/auth/me");
         setAuth(data.user);
         return data.user;
-      } catch {
+      } catch (err) {
+        // Expected for unauthenticated users (no cookie / expired token).
+        // Log unexpected errors in dev to surface misconfigurations.
+        if (process.env.NODE_ENV === "development") {
+          console.warn("[AuthInit] /api/auth/me failed:", err);
+        }
         return null;
       }
     },

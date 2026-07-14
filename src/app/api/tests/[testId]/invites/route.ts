@@ -57,14 +57,15 @@ export const POST = withAuth(async (req, user, context) => {
       );
     }
 
-    // create invites for all emails
-    const invites = await Promise.all(
-      emails.map((email) =>
-        prisma.testInvite.create({
-          data: { email, testId, expiresAt },
-        }),
-      ),
-    );
+    // create all invites in a single INSERT statement, then fetch them back
+    await prisma.testInvite.createMany({
+      data: emails.map((email) => ({ email, testId, expiresAt })),
+    });
+
+    const invites = await prisma.testInvite.findMany({
+      where: { testId, email: { in: emails }, expiresAt },
+      orderBy: { createdAt: "asc" },
+    });
 
     // build invite links
     const inviteLinks = invites.map((invite) => ({

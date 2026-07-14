@@ -27,6 +27,7 @@ export default function RegisterPage() {
     email: "",
     password: "",
     role: "RECRUITER" as "RECRUITER" | "CANDIDATE",
+    companyName: "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -43,7 +44,13 @@ export default function RegisterPage() {
         };
       }>("/api/auth/register", {
         method: "POST",
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          ...form,
+          // Only send companyName for recruiters; omit entirely for candidates
+          companyName: form.role === "RECRUITER" && form.companyName.trim()
+            ? form.companyName.trim()
+            : undefined,
+        }),
       });
 
       setAuth(data.user);
@@ -134,6 +141,18 @@ export default function RegisterPage() {
                 </button>
               </div>
             </div>
+            {/* Company name — only shown for recruiters */}
+            {form.role === "RECRUITER" && (
+              <div className="space-y-2">
+                <Label htmlFor="companyName">Company name</Label>
+                <Input
+                  id="companyName"
+                  placeholder="Acme Corp"
+                  value={form.companyName}
+                  onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+                />
+              </div>
+            )}
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Creating account..." : "Create account"}
             </Button>

@@ -47,6 +47,10 @@ async function executeCode(
     }
   )
 
+  if (!submitRes.ok) {
+    throw new Error(`Judge0 submission failed: ${submitRes.status} ${submitRes.statusText}`)
+  }
+
   const { token } = await submitRes.json()
 
   // poll for result
@@ -62,6 +66,9 @@ async function executeCode(
         },
       }
     )
+    if (!resultRes.ok) {
+      throw new Error(`Judge0 polling failed: ${resultRes.status} ${resultRes.statusText}`)
+    }
     result = await resultRes.json()
     // status 1=queued, 2=processing, 3=accepted
     if (result.status?.id > 2) break
