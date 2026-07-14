@@ -93,6 +93,11 @@ export const POST = withAuth(async (req, user) => {
           { status: 429 }
         );
       }
+    } else if (process.env.NODE_ENV === "production") {
+      return NextResponse.json(
+        { error: "Rate limiting is required in production." },
+        { status: 500 }
+      );
     }
 
     // verify candidate owns this submission
