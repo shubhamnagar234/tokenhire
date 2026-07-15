@@ -60,6 +60,23 @@ export const POST = withAuth(async (req, user) => {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // verify problem belongs to this test
+    const testProblem = await prisma.testProblem.findUnique({
+      where: {
+        testId_problemId: {
+          testId: submission.invite.testId,
+          problemId,
+        },
+      },
+    });
+
+    if (!testProblem) {
+      return NextResponse.json(
+        { error: "Problem not found or not part of this test" },
+        { status: 404 }
+      );
+    }
+
     // check token budget
     const tokensRemaining = submission.tokenBudget - submission.tokensUsed;
     if (tokensRemaining <= 0) {

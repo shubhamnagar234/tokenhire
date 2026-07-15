@@ -31,6 +31,24 @@ export const POST = withAuth(async (req, user, context) => {
       );
     }
 
+    // Verify problem exists AND belongs to the recruiter's company (or created by them)
+    const problem = await prisma.problem.findFirst({
+      where: {
+        id: problemId,
+        OR: [
+          { companyId: test.companyId },
+          { createdById: user.userId },
+        ],
+      },
+    });
+
+    if (!problem) {
+      return NextResponse.json(
+        { error: "Problem not found or access denied" },
+        { status: 403 },
+      );
+    }
+
     const testProblem = await prisma.testProblem.create({
       data: { testId, problemId, order },
       include: { problem: true },

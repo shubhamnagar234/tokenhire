@@ -141,18 +141,29 @@ export const POST = withAuth(async (req, user) => {
       )
     }
 
-    // get problem with test cases
-    const problem = await prisma.problem.findUnique({
-      where: { id: problemId },
-      include: { testCases: true },
+    // get problem with test cases AND verify it belongs to this test
+    const testProblem = await prisma.testProblem.findUnique({
+      where: {
+        testId_problemId: {
+          testId: submission.invite.testId,
+          problemId,
+        },
+      },
+      include: {
+        problem: {
+          include: { testCases: true },
+        },
+      },
     })
 
-    if (!problem) {
+    if (!testProblem) {
       return NextResponse.json(
-        { error: "Problem not found" },
+        { error: "Problem not found or not part of this test" },
         { status: 404 }
       )
     }
+
+    const problem = testProblem.problem
 
     // run all test cases
     const results = await Promise.all(

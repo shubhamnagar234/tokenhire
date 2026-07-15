@@ -5,7 +5,12 @@ import { withAuth } from "@/lib/auth/withAuth"
 // GET /api/candidate/tests — returns all invites + submissions for the logged-in candidate
 export const GET = withAuth(async (req, user) => {
   const invites = await prisma.testInvite.findMany({
-    where: { candidateId: user.userId },
+    where: {
+      OR: [
+        { candidateId: user.userId },
+        { email: user.email },
+      ],
+    },
     include: {
       test: {
         select: {

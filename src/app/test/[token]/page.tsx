@@ -134,11 +134,11 @@ export default function TestPage() {
       if (user?.role !== "CANDIDATE") {
         throw new Error("Only candidates can take tests");
       }
-      const data = await apiRequest<TestData>(`/api/test/${inviteToken}`);
       const sub = await apiRequest<{ submission: Submission }>(
         `/api/test/${inviteToken}/start`,
         { method: "POST" },
       );
+      const data = await apiRequest<TestData>(`/api/test/${inviteToken}`);
 
       const elapsed = Math.floor(
         (Date.now() - new Date(sub.submission.startedAt).getTime()) / 1000,
