@@ -182,6 +182,11 @@ export const POST = withAuth(async (req, user) => {
     })
     const problemTokensUsed = tokenLogs._sum.tokensUsed ?? 0
 
+    // delete previous answer for this problem to prevent duplicate aggregations
+    await prisma.answer.deleteMany({
+      where: { submissionId, problemId },
+    })
+
     // save answer
     await prisma.answer.create({
       data: {
