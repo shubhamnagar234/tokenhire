@@ -1,25 +1,63 @@
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
+"use client";
+
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { motion } from "motion/react";
 
 export function HeroSection() {
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.15,
+        delayChildren: 0.1,
+      },
+    },
+  };
+
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.5, ease: "easeOut" as const },
+    },
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center px-6 text-center gap-8">
+    <motion.div
+      variants={container}
+      initial="hidden"
+      animate="show"
+      className="flex flex-col items-center justify-center px-6 text-center gap-8"
+    >
       <div className="space-y-4 max-w-2xl">
-        <div className="inline-block px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm">
-          The future of technical hiring
-        </div>
-        <h1 className="text-5xl font-bold leading-tight">
+        <motion.div variants={item}>
+          <div className="inline-block px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm">
+            The future of technical hiring
+          </div>
+        </motion.div>
+
+        <motion.h1
+          variants={item}
+          className="text-5xl md:text-6xl font-bold leading-tight"
+        >
           Hire engineers who use{" "}
           <span className="text-blue-400">AI efficiently</span>
-        </h1>
-        <p className="text-xl text-muted-foreground leading-relaxed">
-          TokenHire gives every candidate the same AI token budget.
-          How efficiently they use it — alongside correctness and speed —
-          determines their rank.
-        </p>
+        </motion.h1>
+
+        <motion.p
+          variants={item}
+          className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto"
+        >
+          TokenHire gives every candidate the same AI token budget. How
+          efficiently they use it — alongside correctness and speed — determines
+          their rank.
+        </motion.p>
       </div>
 
-      <div className="flex items-center gap-4">
+      <motion.div variants={item} className="flex items-center gap-4">
         <Link href="/register">
           <Button size="lg" className="px-8">
             Start hiring
@@ -30,7 +68,7 @@ export function HeroSection() {
             Sign in
           </Button>
         </Link>
-      </div>
-    </div>
-  )
+      </motion.div>
+    </motion.div>
+  );
 }

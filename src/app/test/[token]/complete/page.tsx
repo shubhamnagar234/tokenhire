@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { gsap } from "gsap";
+import { motion } from "motion/react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -27,40 +26,34 @@ interface CompletionData {
   };
 }
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      delayChildren: 0.4,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 30, opacity: 0 },
+  show: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.4, ease: "easeOut" as const },
+  },
+};
+
 export default function TestCompletePage() {
   const params = useParams();
   const token = params.token as string;
-  const scoreRef = useRef<HTMLDivElement>(null);
-  const cardsRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading, error } = useQuery<CompletionData>({
     queryKey: ["test-result", token],
     queryFn: () => apiRequest(`/api/test/${token}/result`),
   });
-
-  // GSAP score reveal animation
-  useEffect(() => {
-    if (!data || !scoreRef.current || !cardsRef.current) return;
-
-    gsap.fromTo(
-      scoreRef.current,
-      { scale: 0.5, opacity: 0 },
-      { scale: 1, opacity: 1, duration: 0.6, ease: "back.out(1.7)" },
-    );
-
-    gsap.fromTo(
-      cardsRef.current.children,
-      { y: 30, opacity: 0 },
-      {
-        y: 0,
-        opacity: 1,
-        duration: 0.4,
-        stagger: 0.1,
-        ease: "power2.out",
-        delay: 0.4,
-      },
-    );
-  }, [data]);
 
   if (isLoading) {
     return (
@@ -104,88 +97,121 @@ export default function TestCompletePage() {
           <p className="text-muted-foreground text-sm uppercase tracking-wider">
             Your Score
           </p>
-          <div ref={scoreRef} className={`text-8xl font-bold ${scoreColor}`}>
+          <motion.div
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
+            className={`text-8xl font-bold ${scoreColor}`}
+          >
             {data.scores.composite}
-          </div>
+          </motion.div>
           <p className="text-muted-foreground">out of 100</p>
         </div>
 
         {/* Score breakdown */}
-        <div ref={cardsRef} className="grid grid-cols-2 gap-3">
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground mb-1">Correctness</p>
-              <p className="text-2xl font-bold text-blue-400">
-                {data.scores.correctness}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {data.summary.testCasesPassed}/{data.summary.testCasesTotal}{" "}
-                tests
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground mb-1">Speed</p>
-              <p className="text-2xl font-bold text-purple-400">
-                {data.scores.time}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {data.summary.timeUsedMins} mins used
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground mb-1">
-                Token Efficiency
-              </p>
-              <p className="text-2xl font-bold text-green-400">
-                {data.scores.tokenSaving}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {data.summary.tokensUsed}/{data.summary.tokenBudget} used
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-4 pb-3">
-              <p className="text-xs text-muted-foreground mb-1">Code Quality</p>
-              <p className="text-2xl font-bold text-orange-400">
-                {data.scores.codeQuality}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                AI-assisted review
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <motion.div
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="grid grid-cols-2 gap-3"
+        >
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-muted-foreground mb-1">
+                  Correctness
+                </p>
+                <p className="text-2xl font-bold text-blue-400">
+                  {data.scores.correctness}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {data.summary.testCasesPassed}/{data.summary.testCasesTotal}{" "}
+                  tests
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-muted-foreground mb-1">Speed</p>
+                <p className="text-2xl font-bold text-purple-400">
+                  {data.scores.time}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {data.summary.timeUsedMins} mins used
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-muted-foreground mb-1">
+                  Token Efficiency
+                </p>
+                <p className="text-2xl font-bold text-green-400">
+                  {data.scores.tokenSaving}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {data.summary.tokensUsed}/{data.summary.tokenBudget} used
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div variants={itemVariants}>
+            <Card>
+              <CardContent className="pt-4 pb-3">
+                <p className="text-xs text-muted-foreground mb-1">
+                  Code Quality
+                </p>
+                <p className="text-2xl font-bold text-orange-400">
+                  {data.scores.codeQuality}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  AI-assisted review
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
 
         {/* Token insight */}
-        <Card className="border-blue-500/30 bg-blue-500/5">
-          <CardContent className="pt-4 pb-3">
-            <p className="text-sm text-blue-400 font-medium mb-1">
-              Token Efficiency Insight
-            </p>
-            <p className="text-sm text-muted-foreground">
-              You used {data.summary.tokensUsed} of {data.summary.tokenBudget}{" "}
-              tokens (
-              {Math.round(
-                (data.summary.tokensUsed / data.summary.tokenBudget) * 100,
-              )}
-              %).
-              {data.scores.tokenSaving >= 80
-                ? " Excellent efficiency — you solved problems independently."
-                : data.scores.tokenSaving >= 50
-                  ? " Good balance of AI assistance and independent solving."
-                  : " Heavy AI usage detected — consider practising independently."}
-            </p>
-          </CardContent>
-        </Card>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1, duration: 0.5 }}
+        >
+          <Card className="border-blue-500/30 bg-blue-500/5">
+            <CardContent className="pt-4 pb-3">
+              <p className="text-sm text-blue-400 font-medium mb-1">
+                Token Efficiency Insight
+              </p>
+              <p className="text-sm text-muted-foreground">
+                You used {data.summary.tokensUsed} of {data.summary.tokenBudget}{" "}
+                tokens (
+                {Math.round(
+                  (data.summary.tokensUsed / data.summary.tokenBudget) * 100,
+                )}
+                %).
+                {data.scores.tokenSaving >= 80
+                  ? " Excellent efficiency — you solved problems independently."
+                  : data.scores.tokenSaving >= 50
+                    ? " Good balance of AI assistance and independent solving."
+                    : " Heavy AI usage detected — consider practising independently."}
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <p className="text-center text-sm text-muted-foreground">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1.2 }}
+          className="text-center text-sm text-muted-foreground"
+        >
           Results have been sent to the recruiter.
-        </p>
+        </motion.p>
       </div>
     </div>
   );
