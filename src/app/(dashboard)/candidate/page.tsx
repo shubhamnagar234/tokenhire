@@ -12,6 +12,7 @@ import { Logo } from "@/components/ui/logo";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import { toast } from "sonner";
 
 interface CandidateTest {
   token: string;
@@ -84,6 +85,7 @@ export default function CandidateDashboardPage() {
             size="sm"
             onClick={() => {
               clearAuth();
+              toast.success("Logged out");
               router.push("/login");
             }}
           >
