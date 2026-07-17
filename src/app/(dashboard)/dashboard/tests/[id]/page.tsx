@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import { motion, AnimatePresence } from "motion/react";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -592,9 +593,19 @@ export default function TestDetailPage() {
                 </Card>
               ) : (
                 <div className="space-y-2">
-                  {testProblems.map((tp) => (
-                    <Card key={tp.id} className="border-green-500/20">
-                      <CardContent className="flex items-center justify-between py-3 gap-4">
+                  <AnimatePresence mode="popLayout">
+                    {testProblems.map((tp) => (
+                      <motion.div
+                        key={tp.id}
+                        layout
+                        initial={{ opacity: 0, scale: 0.9, height: 0 }}
+                        animate={{ opacity: 1, scale: 1, height: "auto" }}
+                        exit={{ opacity: 0, scale: 0.9, height: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="mb-2"
+                      >
+                        <Card className="border-green-500/20">
+                          <CardContent className="flex items-center justify-between py-3 gap-4">
                         <div className="flex items-center gap-3">
                           <span className="text-xs text-muted-foreground w-5 text-center font-mono">
                             #{tp.order}
@@ -634,7 +645,9 @@ export default function TestDetailPage() {
                         </div>
                       </CardContent>
                     </Card>
+                    </motion.div>
                   ))}
+                  </AnimatePresence>
                 </div>
               )}
             </div>

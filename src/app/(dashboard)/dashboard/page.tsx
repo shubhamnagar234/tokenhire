@@ -154,60 +154,68 @@ export default function DashboardPage() {
       <main className="max-w-6xl mx-auto px-6 py-8">
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Tests
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {/* Use server-side total — tests.length is only the current page */}
-              <p className="text-3xl font-bold">
-                {data?.pagination?.total ?? tests.length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Active Tests
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">
-                {tests.filter((t) => t.status === "ACTIVE").length}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                Total Candidates
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">
-                {tests.reduce((sum, t) => sum + t.invites.length, 0)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-green-500">
-                Completed Tests
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">
-                {tests.reduce(
-                  (sum, t) =>
-                    sum +
-                    t.invites.filter((i) => i.status === "COMPLETED").length,
-                  0,
-                )}
-              </p>
-            </CardContent>
-          </Card>
+          <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Tests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {/* Use server-side total — tests.length is only the current page */}
+                <p className="text-3xl font-bold">
+                  {data?.pagination?.total ?? tests.length}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Active Tests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">
+                  {tests.filter((t) => t.status === "ACTIVE").length}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Total Candidates
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">
+                  {tests.reduce((sum, t) => sum + t.invites.length, 0)}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+          <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium text-green-500">
+                  Completed Tests
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">
+                  {tests.reduce(
+                    (sum, t) =>
+                      sum +
+                      t.invites.filter((i) => i.status === "COMPLETED").length,
+                    0,
+                  )}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
         </div>
 
         {/* Tests list */}

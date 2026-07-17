@@ -1,4 +1,7 @@
+"use client";
+
 import React from "react";
+import { motion } from "motion/react";
 
 interface LogoProps {
   className?: string;
@@ -24,15 +27,20 @@ export function Logo({
   };
 
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
+    <motion.div 
+      className={`flex items-center gap-2 ${className}`}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ duration: 0.2 }}
+    >
       <div
-        className={`${sizeClasses[size]} bg-blue-600 rounded-lg flex items-center justify-center`}
+        className={`${sizeClasses[size]} bg-blue-600 rounded-lg flex items-center justify-center shadow-md`}
       >
         <span className="text-white font-bold">T</span>
       </div>
       {showText && (
         <span className={`font-bold ${textSizeClasses[size]}`}>TokenHire</span>
       )}
-    </div>
+    </motion.div>
   );
 }

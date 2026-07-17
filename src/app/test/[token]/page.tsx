@@ -511,53 +511,64 @@ export default function TestPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <h2 className="font-semibold text-base">{problem?.title}</h2>
-                <Badge
-                  variant="outline"
-                  className={
-                    problem?.difficulty === "EASY"
-                      ? "text-green-400 border-green-400/50"
-                      : problem?.difficulty === "MEDIUM"
-                        ? "text-yellow-400 border-yellow-400/50"
-                        : "text-red-400 border-red-400/50"
-                  }
-                >
-                  {problem?.difficulty}
-                </Badge>
-              </div>
-              <div className="text-sm text-muted-foreground leading-relaxed [&>h1]:text-lg [&>h1]:font-bold [&>h2]:text-base [&>h2]:font-bold [&>p]:mb-4 [&>ul]:list-disc [&>ul]:ml-5 [&>pre]:bg-secondary [&>pre]:p-2 [&>pre]:rounded-md [&>code]:bg-secondary [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded-md">
-                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                  {problem?.description ?? ""}
-                </ReactMarkdown>
-              </div>
-            </div>
-
-            {problem?.testCases && problem.testCases.length > 0 && (
-              <div>
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                  Examples
-                </p>
-                <div className="space-y-2">
-                  {problem.testCases.map((tc, i) => (
-                    <div
-                      key={i}
-                      className="bg-secondary/50 rounded-lg p-3 text-xs font-mono"
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={problem?.id || "empty"}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h2 className="font-semibold text-base">{problem?.title}</h2>
+                    <Badge
+                      variant="outline"
+                      className={
+                        problem?.difficulty === "EASY"
+                          ? "text-green-400 border-green-400/50"
+                          : problem?.difficulty === "MEDIUM"
+                            ? "text-yellow-400 border-yellow-400/50"
+                            : "text-red-400 border-red-400/50"
+                      }
                     >
-                      <p className="text-muted-foreground">
-                        Input:{" "}
-                        <span className="text-foreground">{tc.input}</span>
-                      </p>
-                      <p className="text-muted-foreground">
-                        Output:{" "}
-                        <span className="text-foreground">{tc.expected}</span>
-                      </p>
-                    </div>
-                  ))}
+                      {problem?.difficulty}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground leading-relaxed [&>h1]:text-lg [&>h1]:font-bold [&>h2]:text-base [&>h2]:font-bold [&>p]:mb-4 [&>ul]:list-disc [&>ul]:ml-5 [&>pre]:bg-secondary [&>pre]:p-2 [&>pre]:rounded-md [&>code]:bg-secondary [&>code]:px-1.5 [&>code]:py-0.5 [&>code]:rounded-md">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {problem?.description ?? ""}
+                    </ReactMarkdown>
+                  </div>
                 </div>
-              </div>
-            )}
+
+                {problem?.testCases && problem.testCases.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                      Examples
+                    </p>
+                    <div className="space-y-2">
+                      {problem.testCases.map((tc, i) => (
+                        <div
+                          key={i}
+                          className="bg-secondary/50 rounded-lg p-3 text-xs font-mono"
+                        >
+                          <p className="text-muted-foreground">
+                            Input:{" "}
+                            <span className="text-foreground">{tc.input}</span>
+                          </p>
+                          <p className="text-muted-foreground">
+                            Output:{" "}
+                            <span className="text-foreground">{tc.expected}</span>
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 
@@ -658,16 +669,30 @@ export default function TestPage() {
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-3">
-                  {aiResponse ? (
-                    <div className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
-                      {aiResponse}
-                    </div>
-                  ) : (
-                    <p className="text-xs text-muted-foreground text-center mt-8">
-                      Ask AI for help. Each request uses tokens from your
-                      budget.
-                    </p>
-                  )}
+                  <AnimatePresence mode="wait">
+                    {aiResponse ? (
+                      <motion.div 
+                        key="response"
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10 }}
+                        className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap"
+                      >
+                        {aiResponse}
+                      </motion.div>
+                    ) : (
+                      <motion.p 
+                        key="empty"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="text-xs text-muted-foreground text-center mt-8"
+                      >
+                        Ask AI for help. Each request uses tokens from your
+                        budget.
+                      </motion.p>
+                    )}
+                  </AnimatePresence>
                 </div>
 
                 <div className="p-3 border-t border-border space-y-2">

@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
+import { motion } from "motion/react";
 
 export default function NewTestPage() {
   const router = useRouter();
@@ -97,9 +98,18 @@ export default function NewTestPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8">
-        <form onSubmit={handleCreateTest} className="space-y-6">
+        <motion.form 
+          onSubmit={handleCreateTest} 
+          className="space-y-6"
+          initial="hidden"
+          animate="show"
+          variants={{
+            show: { transition: { staggerChildren: 0.1 } }
+          }}
+        >
           {/* Basic info */}
-          <Card>
+          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+            <Card>
             <CardHeader>
               <CardTitle className="text-base">Test Details</CardTitle>
             </CardHeader>
@@ -160,8 +170,10 @@ export default function NewTestPage() {
               </div>
             </CardContent>
           </Card>
+          </motion.div>
 
           {/* AI Model Selector */}
+          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-base">AI Assistant Model</CardTitle>
@@ -212,8 +224,10 @@ export default function NewTestPage() {
               ))}
             </CardContent>
           </Card>
+          </motion.div>
 
           {/* Scoring weights */}
+          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
           <Card>
             <CardHeader>
               <CardTitle className="text-base">
@@ -269,15 +283,18 @@ export default function NewTestPage() {
               ))}
             </CardContent>
           </Card>
+          </motion.div>
 
-          <Button
+          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+            <Button
             type="submit"
             className="w-full"
             disabled={loading || !weightsValid}
           >
             {loading ? "Creating..." : "Create Test"}
           </Button>
-        </form>
+          </motion.div>
+        </motion.form>
       </main>
     </div>
   );

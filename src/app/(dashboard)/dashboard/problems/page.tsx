@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -158,10 +159,17 @@ export default function ProblemsPage() {
 
       <main className="max-w-4xl mx-auto px-6 py-8 space-y-6">
         {/* ── Create problem form ── */}
-        {showForm && (
-          <Card className="border-blue-500/30">
-            <CardHeader>
-              <CardTitle className="text-base">Create New Problem</CardTitle>
+        <AnimatePresence>
+          {showForm && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden"
+            >
+              <Card className="border-blue-500/30 mb-6">
+                <CardHeader>
+                  <CardTitle className="text-base">Create New Problem</CardTitle>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-5">
@@ -304,8 +312,10 @@ export default function ProblemsPage() {
                 </Button>
               </form>
             </CardContent>
-          </Card>
-        )}
+              </Card>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ── Problem list ── */}
         {problems.length === 0 && !showForm ? (
@@ -318,19 +328,32 @@ export default function ProblemsPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-3">
+          <motion.div 
+            initial="hidden"
+            animate="show"
+            variants={{
+              show: { transition: { staggerChildren: 0.05 } }
+            }}
+            className="space-y-3"
+          >
             {problems.length > 0 && (
-              <p className="text-sm text-muted-foreground">
+              <p className="text-sm text-muted-foreground mb-4">
                 {problems.length} problem{problems.length !== 1 ? "s" : ""} in
                 your bank
               </p>
             )}
             {problems.map((problem) => (
-              <Card
+              <motion.div
                 key={problem.id}
-                className="hover:border-border/80 transition-colors"
+                variants={{
+                  hidden: { opacity: 0, y: 10 },
+                  show: { opacity: 1, y: 0 }
+                }}
+                whileHover={{ scale: 1.01 }}
+                transition={{ duration: 0.2 }}
               >
-                <CardContent className="py-4 flex items-start justify-between gap-4">
+                <Card className="hover:border-border/80 transition-colors">
+                  <CardContent className="py-4 flex items-start justify-between gap-4">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-medium">{problem.title}</p>
@@ -368,9 +391,10 @@ export default function ProblemsPage() {
                     </p>
                   </div>
                 </CardContent>
-              </Card>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </main>
     </div>
