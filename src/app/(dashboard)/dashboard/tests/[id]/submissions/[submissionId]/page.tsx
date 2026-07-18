@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import Link from "next/link";
 import dynamic from "next/dynamic";
+import { motion, AnimatePresence } from "motion/react";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -143,23 +144,35 @@ export default function SubmissionDetailPage() {
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
         {/* Score overview */}
-        <div className="grid grid-cols-5 gap-3">
+        <motion.div 
+          initial="hidden"
+          animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+          }}
+          className="grid grid-cols-5 gap-3"
+        >
           {SCORE_TILES.map((tile) => (
-            <Card
-              key={tile.key}
-              className={tile.key === "composite" ? "border-blue-500/30" : ""}
+            <motion.div 
+              key={tile.key} 
+              variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
             >
-              <CardContent className="pt-4 pb-3 text-center">
-                <p className={`text-2xl font-bold ${tile.color}`}>
-                  {submission.scores[tile.key] ?? "—"}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  {tile.label}
-                </p>
-              </CardContent>
-            </Card>
+              <Card
+                className={tile.key === "composite" ? "border-blue-500/30" : ""}
+              >
+                <CardContent className="pt-4 pb-3 text-center">
+                  <p className={`text-2xl font-bold ${tile.color}`}>
+                    {submission.scores[tile.key] ?? "—"}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    {tile.label}
+                  </p>
+                </CardContent>
+              </Card>
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
 
         {/* Summary bar */}
         <div className="flex items-center gap-6 text-sm text-muted-foreground bg-secondary/40 rounded-lg px-4 py-3">
@@ -184,13 +197,22 @@ export default function SubmissionDetailPage() {
         {/* Per-problem breakdown */}
         <div className="grid grid-cols-[220px_1fr] gap-4">
           {/* Problem list sidebar */}
-          <div className="space-y-2">
+          <motion.div 
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
+            }}
+            className="space-y-2"
+          >
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
               Problems
             </p>
             {submission.problemBreakdown.map((p, i) => (
-              <button
+              <motion.button
                 key={p.problemId}
+                variants={{ hidden: { opacity: 0, x: -10 }, show: { opacity: 1, x: 0 } }}
                 onClick={() => setActiveProb(i)}
                 className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors border ${
                   activeProb === i
@@ -212,89 +234,105 @@ export default function SubmissionDetailPage() {
                     {p.testCasesPassed}/{p.testCasesTotal} passed
                   </span>
                 </div>
-              </button>
+              </motion.button>
             ))}
-          </div>
+          </motion.div>
 
           {/* Code + details panel */}
-          {problem ? (
-            <div className="space-y-4">
-              {/* Problem header */}
-              <Card>
-                <CardHeader className="pb-2 pt-4">
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="text-base">
-                      {problem.problemTitle}
-                    </CardTitle>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${DIFFICULTY_STYLE[problem.difficulty]}`}
-                    >
-                      {problem.difficulty}
-                    </Badge>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ml-auto ${
-                        problem.passRate === 100
-                          ? "border-green-500/50 text-green-400"
-                          : problem.passRate > 0
-                            ? "border-yellow-500/50 text-yellow-400"
-                            : "border-red-500/50 text-red-400"
-                      }`}
-                    >
-                      {problem.testCasesPassed}/{problem.testCasesTotal} test
-                      cases · {problem.passRate}%
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      {problem.language}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {problem.description}
-                  </p>
-                </CardHeader>
-              </Card>
+          <AnimatePresence mode="wait">
+            {problem ? (
+              <motion.div 
+                key={problem.problemId}
+                initial={{ opacity: 0, x: 10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -10 }}
+                transition={{ duration: 0.2 }}
+                className="space-y-4"
+              >
+                {/* Problem header */}
+                <Card>
+                  <CardHeader className="pb-2 pt-4">
+                    <div className="flex items-center gap-3">
+                      <CardTitle className="text-base">
+                        {problem.problemTitle}
+                      </CardTitle>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${DIFFICULTY_STYLE[problem.difficulty]}`}
+                      >
+                        {problem.difficulty}
+                      </Badge>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ml-auto ${
+                          problem.passRate === 100
+                            ? "border-green-500/50 text-green-400"
+                            : problem.passRate > 0
+                              ? "border-yellow-500/50 text-yellow-400"
+                              : "border-red-500/50 text-red-400"
+                        }`}
+                      >
+                        {problem.testCasesPassed}/{problem.testCasesTotal} test
+                        cases · {problem.passRate}%
+                      </Badge>
+                      <span className="text-xs text-muted-foreground">
+                        {problem.language}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {problem.description}
+                    </p>
+                  </CardHeader>
+                </Card>
 
-              {/* Code viewer */}
-              <Card>
-                <CardHeader className="pb-0 pt-3">
-                  <CardTitle className="text-sm text-muted-foreground font-normal">
-                    Submitted Code
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0 pt-2">
-                  <div className="rounded-b-lg overflow-hidden h-[420px]">
-                    <MonacoEditor
-                      height="420px"
-                      language={
-                        MONACO_LANGUAGE_MAP[problem.language] ?? "plaintext"
-                      }
-                      theme="vs-dark"
-                      value={problem.code}
-                      options={{
-                        readOnly: true,
-                        fontSize: 13,
-                        minimap: { enabled: false },
-                        scrollBeyondLastLine: false,
-                        padding: { top: 12 },
-                        fontFamily: "var(--font-geist-mono)",
-                        lineNumbers: "on",
-                        folding: true,
-                      }}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="flex items-center justify-center py-16">
-                <p className="text-muted-foreground text-sm">
-                  No submission for this problem.
-                </p>
-              </CardContent>
-            </Card>
-          )}
+                {/* Code viewer */}
+                <Card>
+                  <CardHeader className="pb-0 pt-3">
+                    <CardTitle className="text-sm text-muted-foreground font-normal">
+                      Submitted Code
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-0 pt-2">
+                    <div className="rounded-b-lg overflow-hidden h-[420px]">
+                      <MonacoEditor
+                        height="420px"
+                        language={
+                          MONACO_LANGUAGE_MAP[problem.language] ?? "plaintext"
+                        }
+                        theme="vs-dark"
+                        value={problem.code}
+                        options={{
+                          readOnly: true,
+                          fontSize: 13,
+                          minimap: { enabled: false },
+                          scrollBeyondLastLine: false,
+                          padding: { top: 12 },
+                          fontFamily: "var(--font-geist-mono)",
+                          lineNumbers: "on",
+                          folding: true,
+                        }}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="empty"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <Card>
+                  <CardContent className="flex items-center justify-center py-16">
+                    <p className="text-muted-foreground text-sm">
+                      No submission for this problem.
+                    </p>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </main>
     </div>

@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { toast } from "sonner";
+import { motion } from "motion/react";
 
 interface CandidateTest {
   token: string;
@@ -111,7 +112,15 @@ export default function CandidateDashboardPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid gap-4">
+          <motion.div 
+            initial="hidden"
+            animate="show"
+            variants={{
+              hidden: { opacity: 0 },
+              show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+            }}
+            className="grid gap-4"
+          >
             {invites.map((invite) => {
               const isExpired =
                 invite.status === "EXPIRED" ||
@@ -125,65 +134,71 @@ export default function CandidateDashboardPage() {
                   : invite.status;
 
               return (
-                <Card key={invite.token}>
-                  <CardHeader className="pb-3 flex flex-row items-start justify-between">
-                    <div>
-                      <CardTitle className="text-lg">
-                        {invite.test.title}
-                      </CardTitle>
-                      {invite.test.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {invite.test.description}
-                        </p>
-                      )}
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className={`text-xs ${INVITE_STATUS_STYLE[displayStatus] ?? ""}`}
-                    >
-                      {displayStatus}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex gap-6 text-sm text-muted-foreground">
-                        <span>⏱ {invite.test.timeLimitMins} mins</span>
-                        <span>🪙 {invite.test.tokenBudget} tokens</span>
-                        {invite.submission?.scoreComposite != null && (
-                          <span className="text-blue-400 font-semibold">
-                            Score: {invite.submission.scoreComposite}
-                          </span>
+                <motion.div 
+                  key={invite.token}
+                  variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                  whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                >
+                  <Card className="hover:border-blue-500/50 transition-colors h-full">
+                    <CardHeader className="pb-3 flex flex-row items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg">
+                          {invite.test.title}
+                        </CardTitle>
+                        {invite.test.description && (
+                          <p className="text-sm text-muted-foreground mt-1">
+                            {invite.test.description}
+                          </p>
                         )}
                       </div>
-
-                      {canStart && (
-                        <Link href={`/test/${invite.token}`}>
-                          <Button size="sm">Start Assessment</Button>
-                        </Link>
-                      )}
-
-                      {displayStatus === "COMPLETED" && invite.submission && (
-                        <div className="flex gap-2">
-                          <Badge variant="outline" className="text-xs">
-                            Correctness: {invite.submission.scoreCorrectness}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            Speed: {invite.submission.scoreTime}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            Tokens: {invite.submission.scoreTokenSaving}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            Quality: {invite.submission.scoreCodeQuality}
-                          </Badge>
+                      <Badge
+                        variant="outline"
+                        className={`text-xs ${INVITE_STATUS_STYLE[displayStatus] ?? ""}`}
+                      >
+                        {displayStatus}
+                      </Badge>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="flex items-center justify-between mt-2">
+                        <div className="flex gap-6 text-sm text-muted-foreground">
+                          <span>⏱ {invite.test.timeLimitMins} mins</span>
+                          <span>🪙 {invite.test.tokenBudget} tokens</span>
+                          {invite.submission?.scoreComposite != null && (
+                            <span className="text-blue-400 font-semibold">
+                              Score: {invite.submission.scoreComposite}
+                            </span>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
+
+                        {canStart && (
+                          <Link href={`/test/${invite.token}`}>
+                            <Button size="sm">Start Assessment</Button>
+                          </Link>
+                        )}
+
+                        {displayStatus === "COMPLETED" && invite.submission && (
+                          <div className="flex gap-2">
+                            <Badge variant="outline" className="text-xs">
+                              Correctness: {invite.submission.scoreCorrectness}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              Speed: {invite.submission.scoreTime}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              Tokens: {invite.submission.scoreTokenSaving}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs">
+                              Quality: {invite.submission.scoreCodeQuality}
+                            </Badge>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
       </main>
     </div>
