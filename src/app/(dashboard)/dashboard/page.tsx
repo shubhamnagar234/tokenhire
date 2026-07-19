@@ -234,6 +234,13 @@ export default function DashboardPage() {
         {tests.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
+              <motion.div 
+                animate={{ y: [0, -10, 0] }} 
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-2"
+              >
+                <span className="text-3xl">📋</span>
+              </motion.div>
               <p className="text-muted-foreground text-center">
                 No tests yet. Create your first test to start hiring.
               </p>

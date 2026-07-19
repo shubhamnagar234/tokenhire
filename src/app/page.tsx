@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { motion } from "motion/react";
 import { HeroSection } from "@/components/marketing/HeroSection";
 import { FeaturesSection } from "@/components/marketing/FeaturesSection";
 import { TokenScrollSimulation } from "@/components/marketing/TokenScrollSimulation";
@@ -9,7 +10,12 @@ import { Logo } from "@/components/ui/logo";
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <header className="px-6 py-4 flex items-center justify-between sticky top-0 z-50 bg-background/80 backdrop-blur border-b border-border">
+      <motion.header 
+        initial={{ y: -100 }} 
+        animate={{ y: 0 }} 
+        transition={{ type: "spring", stiffness: 100, damping: 20 }}
+        className="px-6 py-4 flex items-center justify-between sticky top-0 z-50 bg-background/80 backdrop-blur border-b border-border"
+      >
         <Logo />
         <div className="flex items-center gap-4">
           <ThemeToggle />
@@ -22,7 +28,7 @@ export default function HomePage() {
             <Button size="sm">Get Started</Button>
           </Link>
         </div>
-      </header>
+      </motion.header>
 
       <main className="flex-1 py-16">
         <HeroSection />
