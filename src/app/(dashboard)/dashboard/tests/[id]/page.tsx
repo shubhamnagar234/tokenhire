@@ -244,14 +244,19 @@ export default function TestDetailPage() {
           <Skeleton className="h-6 w-32" />
           <Skeleton className="h-6 w-16 ml-2" />
         </header>
-        <main className="max-w-6xl mx-auto p-6 space-y-8">
+        <motion.main 
+          initial={{ opacity: 0 }} 
+          animate={{ opacity: 1 }} 
+          transition={{ duration: 0.3 }}
+          className="max-w-6xl mx-auto p-6 space-y-8"
+        >
           <Skeleton className="h-10 w-full max-w-sm rounded-md" />
           <div className="space-y-4">
             <Skeleton className="h-20 w-full rounded-xl" />
             <Skeleton className="h-20 w-full rounded-xl" />
             <Skeleton className="h-20 w-full rounded-xl" />
           </div>
-        </main>
+        </motion.main>
       </div>
     );
   }
@@ -305,22 +310,28 @@ export default function TestDetailPage() {
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`px-4 py-3 text-sm font-medium capitalize transition-colors border-b-2 ${
+              className={`relative px-4 py-3 text-sm font-medium capitalize transition-colors ${
                 activeTab === tab
-                  ? "border-blue-500 text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  ? "text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               }`}
             >
               {tab}
               {tab === "invites" && invitesData && (
-                <span className="ml-1.5 text-xs bg-secondary px-1.5 py-0.5 rounded-full">
+                <span className="ml-1.5 text-xs bg-secondary px-1.5 py-0.5 rounded-full z-10 relative">
                   {invites.length}
                 </span>
               )}
               {tab === "problems" && testProblemsData && (
-                <span className="ml-1.5 text-xs bg-secondary px-1.5 py-0.5 rounded-full">
+                <span className="ml-1.5 text-xs bg-secondary px-1.5 py-0.5 rounded-full z-10 relative">
                   {testProblems.length}
                 </span>
+              )}
+              {activeTab === tab && (
+                <motion.div
+                  layoutId="active-tab"
+                  className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-500"
+                />
               )}
             </button>
           ))}
@@ -343,117 +354,126 @@ export default function TestDetailPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+              <motion.div 
+                initial="hidden"
+                animate="show"
+                variants={{ show: { transition: { staggerChildren: 0.1 } } }}
+                className="space-y-4"
+              >
                 <h2 className="text-lg font-semibold">Leaderboard</h2>
                 {leaderboard.map((entry) => (
-                  <Link
+                  <motion.div 
                     key={entry.rank}
-                    href={`/dashboard/tests/${testId}/submissions/${entry.submissionId}`}
-                    className="block group"
+                    variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
                   >
-                    <Card
-                      className={`transition-colors group-hover:border-blue-500/50 ${
-                        entry.rank === 1 ? "border-yellow-500/50" : ""
-                      }`}
+                    <Link
+                      href={`/dashboard/tests/${testId}/submissions/${entry.submissionId}`}
+                      className="block group"
                     >
-                      <CardContent className="py-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex items-center gap-4">
-                            <div
-                              className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
-                                entry.rank === 1
-                                  ? "bg-yellow-500/20 text-yellow-400"
-                                  : entry.rank === 2
-                                    ? "bg-gray-400/20 text-gray-400"
-                                    : entry.rank === 3
-                                      ? "bg-orange-500/20 text-orange-400"
-                                      : "bg-secondary text-muted-foreground"
-                              }`}
-                            >
-                              {entry.rank}
+                      <Card
+                        className={`transition-colors group-hover:border-blue-500/50 ${
+                          entry.rank === 1 ? "border-yellow-500/50" : ""
+                        }`}
+                      >
+                        <CardContent className="py-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                              <div
+                                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg ${
+                                  entry.rank === 1
+                                    ? "bg-yellow-500/20 text-yellow-400"
+                                    : entry.rank === 2
+                                      ? "bg-gray-400/20 text-gray-400"
+                                      : entry.rank === 3
+                                        ? "bg-orange-500/20 text-orange-400"
+                                        : "bg-secondary text-muted-foreground"
+                                }`}
+                              >
+                                {entry.rank}
+                              </div>
+                              <div>
+                                <p className="font-medium">
+                                  {entry.candidate.name}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  {entry.candidate.email}
+                                </p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-medium">
-                                {entry.candidate.name}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                {entry.candidate.email}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right">
-                            <p className="text-3xl font-bold text-blue-400">
-                              {entry.scores.composite}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              composite
-                            </p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-4 gap-3 mt-4">
-                          {[
-                            {
-                              label: "Correctness",
-                              value: entry.scores.correctness,
-                              color: "text-blue-400",
-                            },
-                            {
-                              label: "Speed",
-                              value: entry.scores.time,
-                              color: "text-purple-400",
-                            },
-                            {
-                              label: "Token Eff.",
-                              value: entry.scores.tokenSaving,
-                              color: "text-green-400",
-                            },
-                            {
-                              label: "Code Quality",
-                              value: entry.scores.codeQuality,
-                              color: "text-orange-400",
-                            },
-                          ].map((s) => (
-                            <div
-                              key={s.label}
-                              className="bg-secondary/50 rounded-lg p-2 text-center"
-                            >
-                              <p className={`text-lg font-bold ${s.color}`}>
-                                {s.value}
+                            <div className="text-right">
+                              <p className="text-3xl font-bold text-blue-400">
+                                {entry.scores.composite}
                               </p>
                               <p className="text-xs text-muted-foreground">
-                                {s.label}
+                                composite
                               </p>
                             </div>
-                          ))}
-                        </div>
+                          </div>
 
-                        <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
-                          <span>{entry.summary.timeUsedMins} mins used</span>
-                          <span>
-                            {entry.summary.tokensUsed}/
-                            {entry.summary.tokenBudget} tokens
-                          </span>
-                          <span className="text-green-400">
-                            {entry.summary.tokenEfficiency}% efficient
-                          </span>
-                          {Object.entries(entry.summary.aiUsageBreakdown).map(
-                            ([type, tokens]) => (
-                              <Badge
-                                key={type}
-                                variant="outline"
-                                className="text-xs"
+                          <div className="grid grid-cols-4 gap-3 mt-4">
+                            {[
+                              {
+                                label: "Correctness",
+                                value: entry.scores.correctness,
+                                color: "text-blue-400",
+                              },
+                              {
+                                label: "Speed",
+                                value: entry.scores.time,
+                                color: "text-purple-400",
+                              },
+                              {
+                                label: "Token Eff.",
+                                value: entry.scores.tokenSaving,
+                                color: "text-green-400",
+                              },
+                              {
+                                label: "Code Quality",
+                                value: entry.scores.codeQuality,
+                                color: "text-orange-400",
+                              },
+                            ].map((s) => (
+                              <div
+                                key={s.label}
+                                className="bg-secondary/50 rounded-lg p-2 text-center"
                               >
-                                {type}: {tokens} tokens
-                              </Badge>
-                            ),
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
+                                <p className={`text-lg font-bold ${s.color}`}>
+                                  {s.value}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {s.label}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+
+                          <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>{entry.summary.timeUsedMins} mins used</span>
+                            <span>
+                              {entry.summary.tokensUsed}/
+                              {entry.summary.tokenBudget} tokens
+                            </span>
+                            <span className="text-green-400">
+                              {entry.summary.tokenEfficiency}% efficient
+                            </span>
+                            {Object.entries(entry.summary.aiUsageBreakdown).map(
+                              ([type, tokens]) => (
+                                <Badge
+                                  key={type}
+                                  variant="outline"
+                                  className="text-xs"
+                                >
+                                  {type}: {tokens} tokens
+                                </Badge>
+                              ),
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </>
         )}
@@ -493,7 +513,12 @@ export default function TestDetailPage() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-2">
+              <motion.div 
+                initial="hidden"
+                animate="show"
+                variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+                className="space-y-2"
+              >
                 <p className="text-sm font-medium text-muted-foreground">
                   {invites.length} invite{invites.length !== 1 ? "s" : ""}
                 </p>
@@ -506,71 +531,73 @@ export default function TestDetailPage() {
                     invite.status !== "EXPIRED";
 
                   return (
-                    <Card
+                    <motion.div 
                       key={invite.id}
-                      className="transition-colors hover:border-border/80"
+                      variants={{ hidden: { opacity: 0, x: -10 }, show: { opacity: 1, x: 0 } }}
                     >
-                      <CardContent className="flex items-center justify-between py-3 gap-4">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {invite.email}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {invite.candidate?.name
-                              ? `Accepted by ${invite.candidate.name} · `
-                              : ""}
-                            Expires{" "}
-                            {new Date(invite.expiresAt).toLocaleDateString()}
-                            {invite.submission?.scoreComposite != null
-                              ? ` · Score: ${invite.submission.scoreComposite}`
-                              : ""}
-                          </p>
-                        </div>
+                      <Card className="transition-colors hover:border-border/80">
+                        <CardContent className="flex items-center justify-between py-3 gap-4">
+                          <div className="min-w-0">
+                            <p className="text-sm font-medium truncate">
+                              {invite.email}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {invite.candidate?.name
+                                ? `Accepted by ${invite.candidate.name} · `
+                                : ""}
+                              Expires{" "}
+                              {new Date(invite.expiresAt).toLocaleDateString()}
+                              {invite.submission?.scoreComposite != null
+                                ? ` · Score: ${invite.submission.scoreComposite}`
+                                : ""}
+                            </p>
+                          </div>
 
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge
-                            variant="outline"
-                            className={`text-xs ${INVITE_STATUS_STYLE[invite.status] ?? ""}`}
-                          >
-                            {invite.status}
-                          </Badge>
-
-                          {/* Copy link — only for non-expired, non-completed */}
-                          {canRevoke && (
-                            <Button
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Badge
                               variant="outline"
-                              size="sm"
-                              className="text-xs"
-                              onClick={() => handleCopyLink(invite.token)}
+                              className={`text-xs ${INVITE_STATUS_STYLE[invite.status] ?? ""}`}
                             >
-                              Copy Link
-                            </Button>
-                          )}
+                              {invite.status}
+                            </Badge>
 
-                          {/* Revoke */}
-                          {canRevoke && (
-                            <Button
-                              variant="destructive"
-                              size="sm"
-                              className="text-xs"
-                              disabled={revoking === invite.id}
-                              onClick={() => handleRevoke(invite.id)}
-                            >
-                              {revoking === invite.id ? "…" : "Revoke"}
-                            </Button>
-                          )}
+                            {/* Copy link — only for non-expired, non-completed */}
+                            {canRevoke && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="text-xs"
+                                onClick={() => handleCopyLink(invite.token)}
+                              >
+                                Copy Link
+                              </Button>
+                            )}
 
-                          {isExpired && invite.status !== "COMPLETED" && (
-                            <span className="text-xs text-muted-foreground">
-                              Expired
-                            </span>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                            {/* Revoke */}
+                            {canRevoke && (
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="text-xs"
+                                disabled={revoking === invite.id}
+                                onClick={() => handleRevoke(invite.id)}
+                              >
+                                {revoking === invite.id ? "…" : "Revoke"}
+                              </Button>
+                            )}
+
+                            {isExpired && invite.status !== "COMPLETED" && (
+                              <span className="text-xs text-muted-foreground">
+                                Expired
+                              </span>
+                            )}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
                   );
                 })}
-              </div>
+              </motion.div>
             )}
           </div>
         )}
@@ -676,60 +703,67 @@ export default function TestDetailPage() {
                   </CardContent>
                 </Card>
               ) : (
-                <div className="space-y-2">
+                <motion.div 
+                  initial="hidden"
+                  animate="show"
+                  variants={{ show: { transition: { staggerChildren: 0.05 } } }}
+                  className="space-y-2"
+                >
                   {allProblems.map((problem) => {
                     const isAttached = attachedIds.has(problem.id);
                     return (
-                      <Card
+                      <motion.div 
                         key={problem.id}
-                        className={isAttached ? "opacity-50" : ""}
+                        variants={{ hidden: { opacity: 0, x: 10 }, show: { opacity: 1, x: 0 } }}
                       >
-                        <CardContent className="flex items-center justify-between py-3 gap-4">
-                          <div>
-                            <p className="text-sm font-medium">
-                              {problem.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {problem.testCases.length} test case
-                              {problem.testCases.length !== 1 ? "s" : ""}
-                            </p>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${
-                                problem.difficulty === "EASY"
-                                  ? "text-green-400 border-green-400/50"
-                                  : problem.difficulty === "MEDIUM"
-                                    ? "text-yellow-400 border-yellow-400/50"
-                                    : "text-red-400 border-red-400/50"
-                              }`}
-                            >
-                              {problem.difficulty}
-                            </Badge>
-                            <Button
-                              variant={isAttached ? "secondary" : "default"}
-                              size="sm"
-                              className="text-xs"
-                              disabled={
-                                isAttached || togglingProblem === problem.id
-                              }
-                              onClick={() =>
-                                !isAttached && handleAddProblem(problem.id)
-                              }
-                            >
-                              {togglingProblem === problem.id
-                                ? "…"
-                                : isAttached
-                                  ? "Added"
-                                  : "Add"}
-                            </Button>
-                          </div>
-                        </CardContent>
-                      </Card>
+                        <Card className={isAttached ? "opacity-50" : ""}>
+                          <CardContent className="flex items-center justify-between py-3 gap-4">
+                            <div>
+                              <p className="text-sm font-medium">
+                                {problem.title}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {problem.testCases.length} test case
+                                {problem.testCases.length !== 1 ? "s" : ""}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${
+                                  problem.difficulty === "EASY"
+                                    ? "text-green-400 border-green-400/50"
+                                    : problem.difficulty === "MEDIUM"
+                                      ? "text-yellow-400 border-yellow-400/50"
+                                      : "text-red-400 border-red-400/50"
+                                }`}
+                              >
+                                {problem.difficulty}
+                              </Badge>
+                              <Button
+                                variant={isAttached ? "secondary" : "default"}
+                                size="sm"
+                                className="text-xs"
+                                disabled={
+                                  isAttached || togglingProblem === problem.id
+                                }
+                                onClick={() =>
+                                  !isAttached && handleAddProblem(problem.id)
+                                }
+                              >
+                                {togglingProblem === problem.id
+                                  ? "…"
+                                  : isAttached
+                                    ? "Added"
+                                    : "Add"}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
                     );
                   })}
-                </div>
+                </motion.div>
               )}
             </div>
           </div>
