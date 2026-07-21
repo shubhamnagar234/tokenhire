@@ -15,6 +15,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/ui/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "motion/react";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 interface Test {
   id: string;
@@ -127,7 +128,7 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-[250px] rounded-xl" />
+              <Skeleton key={i} className="h-250px rounded-xl" />
             ))}
           </div>
         </main>
@@ -164,7 +165,9 @@ export default function DashboardPage() {
               <CardContent>
                 {/* Use server-side total — tests.length is only the current page */}
                 <p className="text-3xl font-bold">
-                  {data?.pagination?.total ?? tests.length}
+                  <NumberTicker
+                    value={data?.pagination?.total ?? tests.length}
+                  />
                 </p>
               </CardContent>
             </Card>
@@ -178,7 +181,9 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {tests.filter((t) => t.status === "ACTIVE").length}
+                  <NumberTicker
+                    value={tests.filter((t) => t.status === "ACTIVE").length}
+                  />
                 </p>
               </CardContent>
             </Card>
@@ -192,7 +197,9 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {tests.reduce((sum, t) => sum + t.invites.length, 0)}
+                  <NumberTicker
+                    value={tests.reduce((sum, t) => sum + t.invites.length, 0)}
+                  />
                 </p>
               </CardContent>
             </Card>
@@ -206,12 +213,15 @@ export default function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {tests.reduce(
-                    (sum, t) =>
-                      sum +
-                      t.invites.filter((i) => i.status === "COMPLETED").length,
-                    0,
-                  )}
+                  <NumberTicker
+                    value={tests.reduce(
+                      (sum, t) =>
+                        sum +
+                        t.invites.filter((i) => i.status === "COMPLETED")
+                          .length,
+                      0,
+                    )}
+                  />
                 </p>
               </CardContent>
             </Card>
@@ -234,9 +244,13 @@ export default function DashboardPage() {
         {tests.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
-              <motion.div 
-                animate={{ y: [0, -10, 0] }} 
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 3,
+                  ease: "easeInOut",
+                }}
                 className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-2"
               >
                 <span className="text-3xl">📋</span>

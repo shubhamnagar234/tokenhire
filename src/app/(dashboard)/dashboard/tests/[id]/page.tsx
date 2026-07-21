@@ -244,9 +244,9 @@ export default function TestDetailPage() {
           <Skeleton className="h-6 w-32" />
           <Skeleton className="h-6 w-16 ml-2" />
         </header>
-        <motion.main 
-          initial={{ opacity: 0 }} 
-          animate={{ opacity: 1 }} 
+        <motion.main
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           transition={{ duration: 0.3 }}
           className="max-w-6xl mx-auto p-6 space-y-8"
         >
@@ -354,7 +354,7 @@ export default function TestDetailPage() {
                 </CardContent>
               </Card>
             ) : (
-              <motion.div 
+              <motion.div
                 initial="hidden"
                 animate="show"
                 variants={{ show: { transition: { staggerChildren: 0.1 } } }}
@@ -362,9 +362,12 @@ export default function TestDetailPage() {
               >
                 <h2 className="text-lg font-semibold">Leaderboard</h2>
                 {leaderboard.map((entry) => (
-                  <motion.div 
+                  <motion.div
                     key={entry.rank}
-                    variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      show: { opacity: 1, y: 0 },
+                    }}
                   >
                     <Link
                       href={`/dashboard/tests/${testId}/submissions/${entry.submissionId}`}
@@ -513,90 +516,104 @@ export default function TestDetailPage() {
                 </CardContent>
               </Card>
             ) : (
-              <motion.div 
+              <motion.div
                 initial="hidden"
                 animate="show"
                 variants={{ show: { transition: { staggerChildren: 0.05 } } }}
                 className="space-y-2"
               >
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-sm font-medium text-muted-foreground mb-4">
                   {invites.length} invite{invites.length !== 1 ? "s" : ""}
                 </p>
-                {invites.map((invite) => {
-                  const isExpired =
-                    invite.status === "EXPIRED" ||
-                    new Date(invite.expiresAt) < new Date();
-                  const canRevoke =
-                    invite.status !== "COMPLETED" &&
-                    invite.status !== "EXPIRED";
+                <AnimatePresence mode="popLayout">
+                  {invites.map((invite) => {
+                    const isExpired =
+                      invite.status === "EXPIRED" ||
+                      new Date(invite.expiresAt) < new Date();
+                    const canRevoke =
+                      invite.status !== "COMPLETED" &&
+                      invite.status !== "EXPIRED";
 
-                  return (
-                    <motion.div 
-                      key={invite.id}
-                      variants={{ hidden: { opacity: 0, x: -10 }, show: { opacity: 1, x: 0 } }}
-                    >
-                      <Card className="transition-colors hover:border-border/80">
-                        <CardContent className="flex items-center justify-between py-3 gap-4">
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">
-                              {invite.email}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {invite.candidate?.name
-                                ? `Accepted by ${invite.candidate.name} · `
-                                : ""}
-                              Expires{" "}
-                              {new Date(invite.expiresAt).toLocaleDateString()}
-                              {invite.submission?.scoreComposite != null
-                                ? ` · Score: ${invite.submission.scoreComposite}`
-                                : ""}
-                            </p>
-                          </div>
+                    return (
+                      <motion.div
+                        key={invite.id}
+                        layout
+                        initial={{ opacity: 0, x: -10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{
+                          opacity: 0,
+                          scale: 0.9,
+                          height: 0,
+                          marginBottom: 0,
+                        }}
+                        transition={{ duration: 0.2 }}
+                        className="mb-2"
+                      >
+                        <Card className="transition-colors hover:border-border/80">
+                          <CardContent className="flex items-center justify-between py-3 gap-4">
+                            <div className="min-w-0">
+                              <p className="text-sm font-medium truncate">
+                                {invite.email}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {invite.candidate?.name
+                                  ? `Accepted by ${invite.candidate.name} · `
+                                  : ""}
+                                Expires{" "}
+                                {new Date(
+                                  invite.expiresAt,
+                                ).toLocaleDateString()}
+                                {invite.submission?.scoreComposite != null
+                                  ? ` · Score: ${invite.submission.scoreComposite}`
+                                  : ""}
+                              </p>
+                            </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${INVITE_STATUS_STYLE[invite.status] ?? ""}`}
-                            >
-                              {invite.status}
-                            </Badge>
-
-                            {/* Copy link — only for non-expired, non-completed */}
-                            {canRevoke && (
-                              <Button
+                            <div className="flex items-center gap-2 shrink-0">
+                              <Badge
                                 variant="outline"
-                                size="sm"
-                                className="text-xs"
-                                onClick={() => handleCopyLink(invite.token)}
+                                className={`text-xs ${INVITE_STATUS_STYLE[invite.status] ?? ""}`}
                               >
-                                Copy Link
-                              </Button>
-                            )}
+                                {invite.status}
+                              </Badge>
 
-                            {/* Revoke */}
-                            {canRevoke && (
-                              <Button
-                                variant="destructive"
-                                size="sm"
-                                className="text-xs"
-                                disabled={revoking === invite.id}
-                                onClick={() => handleRevoke(invite.id)}
-                              >
-                                {revoking === invite.id ? "…" : "Revoke"}
-                              </Button>
-                            )}
+                              {/* Copy link — only for non-expired, non-completed */}
+                              {canRevoke && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="text-xs"
+                                  onClick={() => handleCopyLink(invite.token)}
+                                >
+                                  Copy Link
+                                </Button>
+                              )}
 
-                            {isExpired && invite.status !== "COMPLETED" && (
-                              <span className="text-xs text-muted-foreground">
-                                Expired
-                              </span>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
+                              {/* Revoke */}
+                              {canRevoke && (
+                                <Button
+                                  variant="destructive"
+                                  size="sm"
+                                  className="text-xs"
+                                  disabled={revoking === invite.id}
+                                  onClick={() => handleRevoke(invite.id)}
+                                >
+                                  {revoking === invite.id ? "…" : "Revoke"}
+                                </Button>
+                              )}
+
+                              {isExpired && invite.status !== "COMPLETED" && (
+                                <span className="text-xs text-muted-foreground">
+                                  Expired
+                                </span>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
               </motion.div>
             )}
           </div>
@@ -633,47 +650,51 @@ export default function TestDetailPage() {
                       >
                         <Card className="border-green-500/20">
                           <CardContent className="flex items-center justify-between py-3 gap-4">
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs text-muted-foreground w-5 text-center font-mono">
-                            #{tp.order}
-                          </span>
-                          <div>
-                            <p className="text-sm font-medium">
-                              {tp.problem.title}
-                            </p>
-                            <p className="text-xs text-muted-foreground">
-                              {tp.problem.testCases.length} test case
-                              {tp.problem.testCases.length !== 1 ? "s" : ""}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge
-                            variant="outline"
-                            className={`text-xs ${
-                              tp.problem.difficulty === "EASY"
-                                ? "text-green-400 border-green-400/50"
-                                : tp.problem.difficulty === "MEDIUM"
-                                  ? "text-yellow-400 border-yellow-400/50"
-                                  : "text-red-400 border-red-400/50"
-                            }`}
-                          >
-                            {tp.problem.difficulty}
-                          </Badge>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="text-xs"
-                            disabled={togglingProblem === tp.problem.id}
-                            onClick={() => handleRemoveProblem(tp.problem.id)}
-                          >
-                            {togglingProblem === tp.problem.id ? "…" : "Remove"}
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                    </motion.div>
-                  ))}
+                            <div className="flex items-center gap-3">
+                              <span className="text-xs text-muted-foreground w-5 text-center font-mono">
+                                #{tp.order}
+                              </span>
+                              <div>
+                                <p className="text-sm font-medium">
+                                  {tp.problem.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                  {tp.problem.testCases.length} test case
+                                  {tp.problem.testCases.length !== 1 ? "s" : ""}
+                                </p>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Badge
+                                variant="outline"
+                                className={`text-xs ${
+                                  tp.problem.difficulty === "EASY"
+                                    ? "text-green-400 border-green-400/50"
+                                    : tp.problem.difficulty === "MEDIUM"
+                                      ? "text-yellow-400 border-yellow-400/50"
+                                      : "text-red-400 border-red-400/50"
+                                }`}
+                              >
+                                {tp.problem.difficulty}
+                              </Badge>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="text-xs"
+                                disabled={togglingProblem === tp.problem.id}
+                                onClick={() =>
+                                  handleRemoveProblem(tp.problem.id)
+                                }
+                              >
+                                {togglingProblem === tp.problem.id
+                                  ? "…"
+                                  : "Remove"}
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    ))}
                   </AnimatePresence>
                 </div>
               )}
@@ -703,7 +724,7 @@ export default function TestDetailPage() {
                   </CardContent>
                 </Card>
               ) : (
-                <motion.div 
+                <motion.div
                   initial="hidden"
                   animate="show"
                   variants={{ show: { transition: { staggerChildren: 0.05 } } }}
@@ -712,9 +733,12 @@ export default function TestDetailPage() {
                   {allProblems.map((problem) => {
                     const isAttached = attachedIds.has(problem.id);
                     return (
-                      <motion.div 
+                      <motion.div
                         key={problem.id}
-                        variants={{ hidden: { opacity: 0, x: 10 }, show: { opacity: 1, x: 0 } }}
+                        variants={{
+                          hidden: { opacity: 0, x: 10 },
+                          show: { opacity: 1, x: 0 },
+                        }}
                       >
                         <Card className={isAttached ? "opacity-50" : ""}>
                           <CardContent className="flex items-center justify-between py-3 gap-4">
