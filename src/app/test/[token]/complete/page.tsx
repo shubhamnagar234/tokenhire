@@ -8,6 +8,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api";
+import { CircularProgress } from "@/components/ui/circular-progress";
 
 interface CompletionData {
   scores: {
@@ -93,19 +94,18 @@ export default function TestCompletePage() {
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="max-w-lg w-full space-y-6">
         {/* Score reveal */}
-        <div className="text-center space-y-2">
-          <p className="text-muted-foreground text-sm uppercase tracking-wider">
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground text-sm uppercase tracking-wider font-semibold">
             Your Score
           </p>
           <motion.div
-            initial={{ scale: 0.5, opacity: 0 }}
+            initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
-            className={`text-8xl font-bold ${scoreColor}`}
+            className="flex justify-center py-4"
           >
-            {data.scores.composite}
+            <CircularProgress value={data.scores.composite} size={220} strokeWidth={16} />
           </motion.div>
-          <p className="text-muted-foreground">out of 100</p>
         </div>
 
         {/* Score breakdown */}
