@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
-import { useEffect, useState } from "react";
+import { useHydrated } from "@/lib/hooks/useHydrated";
 import { NumberTicker } from "./number-ticker";
 
 interface CircularProgressProps {
@@ -19,8 +19,7 @@ export function CircularProgress({
   strokeWidth = 12,
   className = "",
 }: CircularProgressProps) {
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const mounted = useHydrated();
 
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -68,7 +67,9 @@ export function CircularProgress({
           strokeLinecap="round"
           className={colorClass}
           initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: mounted ? strokeDashoffset : circumference }}
+          animate={{
+            strokeDashoffset: mounted ? strokeDashoffset : circumference,
+          }}
           transition={{ duration: 1.5, ease: "easeOut", delay: 0.2 }}
           style={{
             strokeDasharray: circumference,

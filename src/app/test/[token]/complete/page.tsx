@@ -83,13 +83,6 @@ export default function TestCompletePage() {
     );
   }
 
-  const scoreColor =
-    data.scores.composite >= 70
-      ? "text-green-400"
-      : data.scores.composite >= 40
-        ? "text-yellow-400"
-        : "text-red-400";
-
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-6">
       <div className="max-w-lg w-full space-y-6">
@@ -104,7 +97,11 @@ export default function TestCompletePage() {
             transition={{ duration: 0.6, type: "spring", bounce: 0.5 }}
             className="flex justify-center py-4"
           >
-            <CircularProgress value={data.scores.composite} size={220} strokeWidth={16} />
+            <CircularProgress
+              value={data.scores.composite}
+              size={220}
+              strokeWidth={16}
+            />
           </motion.div>
         </div>
 
