@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useHydrated } from "@/lib/hooks/useHydrated";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -169,149 +170,153 @@ export default function ProblemsPage() {
             >
               <Card className="border-blue-500/30 mb-6">
                 <CardHeader>
-                  <CardTitle className="text-base">Create New Problem</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Title */}
-                <div className="space-y-1.5">
-                  <Label>Title</Label>
-                  <Input
-                    required
-                    placeholder="e.g. Two Sum"
-                    value={form.title}
-                    onChange={(e) =>
-                      setForm({ ...form, title: e.target.value })
-                    }
-                  />
-                </div>
+                  <CardTitle className="text-base">
+                    Create New Problem
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-5">
+                    {/* Title */}
+                    <div className="space-y-1.5">
+                      <Label>Title</Label>
+                      <Input
+                        required
+                        placeholder="e.g. Two Sum"
+                        value={form.title}
+                        onChange={(e) =>
+                          setForm({ ...form, title: e.target.value })
+                        }
+                      />
+                    </div>
 
-                {/* Description */}
-                <div className="space-y-1.5">
-                  <Label>Description</Label>
-                  <textarea
-                    required
-                    rows={4}
-                    className="w-full bg-secondary/50 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-foreground placeholder:text-muted-foreground resize-none"
-                    placeholder="Problem statement, constraints, and examples…"
-                    value={form.description}
-                    onChange={(e) =>
-                      setForm({ ...form, description: e.target.value })
-                    }
-                  />
-                </div>
+                    {/* Description */}
+                    <div className="space-y-1.5">
+                      <Label>Description</Label>
+                      <textarea
+                        required
+                        rows={4}
+                        className="w-full bg-secondary/50 border border-border rounded-md px-3 py-2 text-sm focus:outline-none focus:border-blue-500/50 text-foreground placeholder:text-muted-foreground resize-none"
+                        placeholder="Problem statement, constraints, and examples…"
+                        value={form.description}
+                        onChange={(e) =>
+                          setForm({ ...form, description: e.target.value })
+                        }
+                      />
+                    </div>
 
-                {/* Difficulty + Tags row */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1.5">
-                    <Label>Difficulty</Label>
-                    <div className="flex gap-2">
-                      {(["EASY", "MEDIUM", "HARD"] as const).map((d) => (
+                    {/* Difficulty + Tags row */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1.5">
+                        <Label>Difficulty</Label>
+                        <div className="flex gap-2">
+                          {(["EASY", "MEDIUM", "HARD"] as const).map((d) => (
+                            <button
+                              key={d}
+                              type="button"
+                              onClick={() =>
+                                setForm({ ...form, difficulty: d })
+                              }
+                              className={`flex-1 py-1.5 text-xs font-semibold rounded-md border transition-colors ${
+                                form.difficulty === d
+                                  ? DIFFICULTY_STYLE[d]
+                                  : "border-border text-muted-foreground hover:border-muted-foreground"
+                              }`}
+                            >
+                              {d}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Tags (comma separated)</Label>
+                        <Input
+                          placeholder="e.g. array, hash-map, two-pointer"
+                          value={form.tags}
+                          onChange={(e) =>
+                            setForm({ ...form, tags: e.target.value })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    {/* Test cases */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label>Test Cases</Label>
                         <button
-                          key={d}
                           type="button"
-                          onClick={() => setForm({ ...form, difficulty: d })}
-                          className={`flex-1 py-1.5 text-xs font-semibold rounded-md border transition-colors ${
-                            form.difficulty === d
-                              ? DIFFICULTY_STYLE[d]
-                              : "border-border text-muted-foreground hover:border-muted-foreground"
-                          }`}
+                          onClick={addTestCase}
+                          className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
                         >
-                          {d}
+                          + Add test case
                         </button>
+                      </div>
+                      {form.testCases.map((tc, i) => (
+                        <div
+                          key={i}
+                          className="grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-start bg-secondary/30 rounded-lg p-3"
+                        >
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                              Input
+                            </p>
+                            <textarea
+                              rows={2}
+                              required
+                              className="w-full bg-secondary/50 border border-border rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-blue-500/50 text-foreground resize-none"
+                              value={tc.input}
+                              onChange={(e) =>
+                                updateTestCase(i, "input", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
+                              Expected Output
+                            </p>
+                            <textarea
+                              rows={2}
+                              required
+                              className="w-full bg-secondary/50 border border-border rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-blue-500/50 text-foreground resize-none"
+                              value={tc.expected}
+                              onChange={(e) =>
+                                updateTestCase(i, "expected", e.target.value)
+                              }
+                            />
+                          </div>
+                          <div className="flex flex-col items-center gap-1 pt-5">
+                            <span className="text-[10px] text-muted-foreground">
+                              Hidden
+                            </span>
+                            <input
+                              type="checkbox"
+                              checked={tc.isHidden}
+                              onChange={(e) =>
+                                updateTestCase(i, "isHidden", e.target.checked)
+                              }
+                              className="w-4 h-4 accent-blue-500"
+                            />
+                          </div>
+                          <div className="pt-5">
+                            {form.testCases.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeTestCase(i)}
+                                className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                              >
+                                ✕
+                              </button>
+                            )}
+                          </div>
+                        </div>
                       ))}
                     </div>
-                  </div>
-                  <div className="space-y-1.5">
-                    <Label>Tags (comma separated)</Label>
-                    <Input
-                      placeholder="e.g. array, hash-map, two-pointer"
-                      value={form.tags}
-                      onChange={(e) =>
-                        setForm({ ...form, tags: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
 
-                {/* Test cases */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label>Test Cases</Label>
-                    <button
-                      type="button"
-                      onClick={addTestCase}
-                      className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
-                    >
-                      + Add test case
-                    </button>
-                  </div>
-                  {form.testCases.map((tc, i) => (
-                    <div
-                      key={i}
-                      className="grid grid-cols-[1fr_1fr_auto_auto] gap-2 items-start bg-secondary/30 rounded-lg p-3"
-                    >
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                          Input
-                        </p>
-                        <textarea
-                          rows={2}
-                          required
-                          className="w-full bg-secondary/50 border border-border rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-blue-500/50 text-foreground resize-none"
-                          value={tc.input}
-                          onChange={(e) =>
-                            updateTestCase(i, "input", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">
-                          Expected Output
-                        </p>
-                        <textarea
-                          rows={2}
-                          required
-                          className="w-full bg-secondary/50 border border-border rounded px-2 py-1 text-xs font-mono focus:outline-none focus:border-blue-500/50 text-foreground resize-none"
-                          value={tc.expected}
-                          onChange={(e) =>
-                            updateTestCase(i, "expected", e.target.value)
-                          }
-                        />
-                      </div>
-                      <div className="flex flex-col items-center gap-1 pt-5">
-                        <span className="text-[10px] text-muted-foreground">
-                          Hidden
-                        </span>
-                        <input
-                          type="checkbox"
-                          checked={tc.isHidden}
-                          onChange={(e) =>
-                            updateTestCase(i, "isHidden", e.target.checked)
-                          }
-                          className="w-4 h-4 accent-blue-500"
-                        />
-                      </div>
-                      <div className="pt-5">
-                        {form.testCases.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeTestCase(i)}
-                            className="text-xs text-red-400 hover:text-red-300 transition-colors"
-                          >
-                            ✕
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <Button type="submit" className="w-full" disabled={saving}>
-                  {saving ? "Creating…" : "Create Problem"}
-                </Button>
-              </form>
-            </CardContent>
+                    <Button type="submit" className="w-full" disabled={saving}>
+                      {saving ? "Creating…" : "Create Problem"}
+                    </Button>
+                  </form>
+                </CardContent>
               </Card>
             </motion.div>
           )}
@@ -321,9 +326,13 @@ export default function ProblemsPage() {
         {problems.length === 0 && !showForm ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16 gap-4">
-              <motion.div 
-                animate={{ y: [0, -10, 0] }} 
-                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              <motion.div
+                animate={{ y: [0, -10, 0] }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 3,
+                  ease: "easeInOut",
+                }}
                 className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-full flex items-center justify-center mb-2"
               >
                 <span className="text-3xl">📝</span>
@@ -335,11 +344,11 @@ export default function ProblemsPage() {
             </CardContent>
           </Card>
         ) : (
-          <motion.div 
+          <motion.div
             initial="hidden"
             animate="show"
             variants={{
-              show: { transition: { staggerChildren: 0.05 } }
+              show: { transition: { staggerChildren: 0.05 } },
             }}
             className="space-y-3"
           >
@@ -354,51 +363,51 @@ export default function ProblemsPage() {
                 key={problem.id}
                 variants={{
                   hidden: { opacity: 0, y: 10 },
-                  show: { opacity: 1, y: 0 }
+                  show: { opacity: 1, y: 0 },
                 }}
                 whileHover={{ scale: 1.01 }}
                 transition={{ duration: 0.2 }}
               >
-                <Card className="hover:border-border/80 transition-colors">
-                  <CardContent className="py-4 flex items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-medium">{problem.title}</p>
-                      <Badge
-                        variant="outline"
-                        className={`text-xs ${DIFFICULTY_STYLE[problem.difficulty]}`}
-                      >
-                        {problem.difficulty}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {problem.description}
-                    </p>
-                    {(problem.tags as string[]).length > 0 && (
-                      <div className="flex gap-1 mt-2 flex-wrap">
-                        {(problem.tags as string[]).map((tag) => (
-                          <span
-                            key={tag}
-                            className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground"
-                          >
-                            {tag}
-                          </span>
-                        ))}
+                <SpotlightCard className="h-full">
+                  <CardContent className="py-4 flex items-start justify-between gap-4 relative z-10">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium">{problem.title}</p>
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${DIFFICULTY_STYLE[problem.difficulty]}`}
+                        >
+                          {problem.difficulty}
+                        </Badge>
                       </div>
-                    )}
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <p className="text-xs text-muted-foreground">
-                      {problem.testCases.length} test case
-                      {problem.testCases.length !== 1 ? "s" : ""}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {problem.testCases.filter((tc) => tc.isHidden).length}{" "}
-                      hidden
-                    </p>
-                  </div>
-                </CardContent>
-                </Card>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {problem.description}
+                      </p>
+                      {(problem.tags as string[]).length > 0 && (
+                        <div className="flex gap-1 mt-2 flex-wrap">
+                          {(problem.tags as string[]).map((tag) => (
+                            <span
+                              key={tag}
+                              className="text-[10px] bg-secondary px-1.5 py-0.5 rounded text-muted-foreground"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="text-xs text-muted-foreground">
+                        {problem.testCases.length} test case
+                        {problem.testCases.length !== 1 ? "s" : ""}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {problem.testCases.filter((tc) => tc.isHidden).length}{" "}
+                        hidden
+                      </p>
+                    </div>
+                  </CardContent>
+                </SpotlightCard>
               </motion.div>
             ))}
           </motion.div>

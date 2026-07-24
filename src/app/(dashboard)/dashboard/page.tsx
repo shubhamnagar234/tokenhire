@@ -16,6 +16,7 @@ import { Logo } from "@/components/ui/logo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "motion/react";
 import { NumberTicker } from "@/components/ui/number-ticker";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 
 interface Test {
   id: string;
@@ -156,13 +157,13 @@ export default function DashboardPage() {
         {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-            <Card>
-              <CardHeader className="pb-2">
+            <SpotlightCard>
+              <CardHeader className="pb-2 relative z-10">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Total Tests
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative z-10">
                 {/* Use server-side total — tests.length is only the current page */}
                 <p className="text-3xl font-bold">
                   <NumberTicker
@@ -170,48 +171,48 @@ export default function DashboardPage() {
                   />
                 </p>
               </CardContent>
-            </Card>
+            </SpotlightCard>
           </motion.div>
           <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-            <Card>
-              <CardHeader className="pb-2">
+            <SpotlightCard>
+              <CardHeader className="pb-2 relative z-10">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Active Tests
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative z-10">
                 <p className="text-3xl font-bold">
                   <NumberTicker
                     value={tests.filter((t) => t.status === "ACTIVE").length}
                   />
                 </p>
               </CardContent>
-            </Card>
+            </SpotlightCard>
           </motion.div>
           <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-            <Card>
-              <CardHeader className="pb-2">
+            <SpotlightCard>
+              <CardHeader className="pb-2 relative z-10">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
                   Total Candidates
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative z-10">
                 <p className="text-3xl font-bold">
                   <NumberTicker
                     value={tests.reduce((sum, t) => sum + t.invites.length, 0)}
                   />
                 </p>
               </CardContent>
-            </Card>
+            </SpotlightCard>
           </motion.div>
           <motion.div whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-            <Card>
-              <CardHeader className="pb-2">
+            <SpotlightCard>
+              <CardHeader className="pb-2 relative z-10">
                 <CardTitle className="text-sm font-medium text-green-500">
                   Completed Tests
                 </CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="relative z-10">
                 <p className="text-3xl font-bold">
                   <NumberTicker
                     value={tests.reduce(
@@ -224,7 +225,7 @@ export default function DashboardPage() {
                   />
                 </p>
               </CardContent>
-            </Card>
+            </SpotlightCard>
           </motion.div>
         </div>
 
