@@ -9,6 +9,7 @@ import { useParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api";
 import { CircularProgress } from "@/components/ui/circular-progress";
+import { Confetti } from "@/components/ui/confetti";
 
 interface CompletionData {
   scores: {
@@ -84,8 +85,9 @@ export default function TestCompletePage() {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-6">
-      <div className="max-w-lg w-full space-y-6">
+    <div className="min-h-screen bg-background flex items-center justify-center p-6 relative overflow-hidden">
+      <Confetti />
+      <div className="max-w-lg w-full space-y-6 relative z-10">
         {/* Score reveal */}
         <div className="text-center space-y-4">
           <p className="text-muted-foreground text-sm uppercase tracking-wider font-semibold">

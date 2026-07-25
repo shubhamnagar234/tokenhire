@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
+import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 
 export function HeroSection() {
   const container = {
@@ -44,7 +45,7 @@ export function HeroSection() {
           className="text-5xl md:text-6xl font-bold leading-tight"
         >
           Hire engineers who use{" "}
-          <span className="text-blue-400">AI efficiently</span>
+          <AnimatedGradientText>AI efficiently</AnimatedGradientText>
         </motion.h1>
 
         <motion.p
