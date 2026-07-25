@@ -11,7 +11,7 @@ export function AnimatedGradientText({
 }) {
   return (
     <motion.span
-      className={`inline-block bg-gradient-to-r from-blue-400 via-indigo-500 to-purple-500 bg-clip-text text-transparent bg-[length:200%_auto] ${className}`}
+      className={`inline-block bg-linear-to-r from-blue-400 via-indigo-500 to-purple-500 bg-clip-text text-transparent bg-size-[200%_auto] ${className}`}
       animate={{
         backgroundPosition: ["0% center", "200% center"],
       }}
