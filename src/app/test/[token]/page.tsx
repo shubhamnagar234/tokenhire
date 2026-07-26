@@ -446,11 +446,28 @@ export default function TestPage() {
         </div>
 
         {/* Timer */}
-        <div
-          className={`flex items-center gap-2 font-mono text-lg font-bold ${timeWarning ? "text-red-400" : "text-foreground"}`}
+        <motion.div
+          animate={
+            timeWarning
+              ? { scale: [1, 1.05, 1], opacity: [1, 0.75, 1] }
+              : { scale: 1, opacity: 1 }
+          }
+          transition={
+            timeWarning
+              ? { repeat: Infinity, duration: 1.2, ease: "easeInOut" }
+              : { duration: 0.2 }
+          }
+          className={`flex items-center gap-2 font-mono text-lg font-bold px-2.5 py-1 rounded-md ${
+            timeWarning
+              ? "text-red-400 bg-red-500/10 border border-red-500/30"
+              : "text-foreground"
+          }`}
         >
+          {timeWarning && (
+            <span className="animate-ping w-2 h-2 rounded-full bg-red-400 inline-block mr-1" />
+          )}
           {formatTime(timeLeft)}
-        </div>
+        </motion.div>
 
         {/* Token HUD */}
         <div className="flex items-center gap-3 flex-1 max-w-sm">
@@ -493,21 +510,35 @@ export default function TestPage() {
       {/* MAIN CONTENT */}
       <div className="flex flex-1 overflow-hidden">
         {/* Problem panel */}
-        <div className="w-[380px] border-r border-border flex flex-col overflow-hidden shrink-0">
-          <div className="flex border-b border-border px-4 pt-2 gap-1">
-            {test.problems.map((p, i) => (
-              <button
-                key={p.id}
-                onClick={() => setActiveProblem(i)}
-                className={`px-3 py-1.5 text-sm rounded-t transition-colors ${
-                  activeProblem === i
-                    ? "bg-background border border-b-background border-border text-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {i + 1}
-              </button>
-            ))}
+        <div className="w-95 border-r border-border flex flex-col overflow-hidden shrink-0">
+          <div className="flex border-b border-border px-4 pt-2 gap-1 bg-secondary/20">
+            {test.problems.map((p, i) => {
+              const isActive = activeProblem === i;
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => setActiveProblem(i)}
+                  className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                    isActive
+                      ? "text-foreground"
+                      : "text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {isActive && (
+                    <motion.div
+                      layoutId="active-problem-pill"
+                      className="absolute inset-0 bg-background border-t border-x border-border rounded-t-md -mb-px z-10"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.4,
+                      }}
+                    />
+                  )}
+                  <span className="relative z-20">Problem {i + 1}</span>
+                </button>
+              );
+            })}
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -522,7 +553,9 @@ export default function TestPage() {
               >
                 <div>
                   <div className="flex items-center gap-2 mb-2">
-                    <h2 className="font-semibold text-base">{problem?.title}</h2>
+                    <h2 className="font-semibold text-base">
+                      {problem?.title}
+                    </h2>
                     <Badge
                       variant="outline"
                       className={
@@ -560,7 +593,9 @@ export default function TestPage() {
                           </p>
                           <p className="text-muted-foreground">
                             Output:{" "}
-                            <span className="text-foreground">{tc.expected}</span>
+                            <span className="text-foreground">
+                              {tc.expected}
+                            </span>
                           </p>
                         </div>
                       ))}
@@ -576,20 +611,34 @@ export default function TestPage() {
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="border-b border-border px-4 py-2 flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Language:</span>
-            <div className="flex gap-1">
-              {LANGUAGES.map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => setLanguage(lang)}
-                  className={`px-2 py-1 text-xs rounded transition-colors ${
-                    language === lang
-                      ? "bg-blue-600 text-white"
-                      : "text-muted-foreground hover:text-foreground"
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
+            <div className="flex gap-1.5 bg-secondary/40 p-1 rounded-lg">
+              {LANGUAGES.map((lang) => {
+                const isSelected = language === lang;
+                return (
+                  <button
+                    key={lang}
+                    onClick={() => setLanguage(lang)}
+                    className={`relative px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                      isSelected
+                        ? "text-white"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {isSelected && (
+                      <motion.div
+                        layoutId="active-lang-pill"
+                        className="absolute inset-0 bg-blue-600 rounded-md"
+                        transition={{
+                          type: "spring",
+                          bounce: 0.2,
+                          duration: 0.3,
+                        }}
+                      />
+                    )}
+                    <span className="relative z-10">{lang}</span>
+                  </button>
+                );
+              })}
             </div>
             <div className="ml-auto">
               <Button
@@ -630,7 +679,7 @@ export default function TestPage() {
               exit={{ width: 0, opacity: 0 }}
               className="border-l border-border flex flex-col overflow-hidden shrink-0"
             >
-              <div className="w-[340px] flex flex-col h-full">
+              <div className="w-85 flex flex-col h-full">
                 <div className="border-b border-border px-4 py-3 flex items-center justify-between">
                   <div>
                     <span className="font-medium text-sm">AI Assistant</span>
@@ -671,7 +720,7 @@ export default function TestPage() {
                 <div className="flex-1 overflow-y-auto p-3">
                   <AnimatePresence mode="wait">
                     {aiResponse ? (
-                      <motion.div 
+                      <motion.div
                         key="response"
                         initial={{ opacity: 0, y: 10, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -681,7 +730,7 @@ export default function TestPage() {
                         {aiResponse}
                       </motion.div>
                     ) : (
-                      <motion.p 
+                      <motion.p
                         key="empty"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
