@@ -12,6 +12,8 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "motion/react";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -144,32 +146,45 @@ export default function SubmissionDetailPage() {
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-6">
         {/* Score overview */}
-        <motion.div 
+        <motion.div
           initial="hidden"
           animate="show"
           variants={{
             hidden: { opacity: 0 },
-            show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+            show: { opacity: 1, transition: { staggerChildren: 0.1 } },
           }}
           className="grid grid-cols-5 gap-3"
         >
           {SCORE_TILES.map((tile) => (
-            <motion.div 
-              key={tile.key} 
-              variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+            <motion.div
+              key={tile.key}
+              variants={{
+                hidden: { opacity: 0, y: 15 },
+                show: { opacity: 1, y: 0 },
+              }}
+              whileHover={{ y: -4 }}
+              transition={{ duration: 0.2 }}
             >
-              <Card
-                className={tile.key === "composite" ? "border-blue-500/30" : ""}
+              <SpotlightCard
+                className={
+                  tile.key === "composite"
+                    ? "border-blue-500/40 shadow-lg shadow-blue-500/10"
+                    : ""
+                }
               >
-                <CardContent className="pt-4 pb-3 text-center">
+                <CardContent className="pt-4 pb-3 text-center relative z-10">
                   <p className={`text-2xl font-bold ${tile.color}`}>
-                    {submission.scores[tile.key] ?? "—"}
+                    {submission.scores[tile.key] !== null ? (
+                      <NumberTicker value={submission.scores[tile.key]!} />
+                    ) : (
+                      "—"
+                    )}
                   </p>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {tile.label}
                   </p>
                 </CardContent>
-              </Card>
+              </SpotlightCard>
             </motion.div>
           ))}
         </motion.div>
@@ -197,51 +212,73 @@ export default function SubmissionDetailPage() {
         {/* Per-problem breakdown */}
         <div className="grid grid-cols-[220px_1fr] gap-4">
           {/* Problem list sidebar */}
-          <motion.div 
+          <motion.div
             initial="hidden"
             animate="show"
             variants={{
               hidden: { opacity: 0 },
-              show: { opacity: 1, transition: { staggerChildren: 0.1, delayChildren: 0.2 } }
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+              },
             }}
             className="space-y-2"
           >
             <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
               Problems
             </p>
-            {submission.problemBreakdown.map((p, i) => (
-              <motion.button
-                key={p.problemId}
-                variants={{ hidden: { opacity: 0, x: -10 }, show: { opacity: 1, x: 0 } }}
-                onClick={() => setActiveProb(i)}
-                className={`w-full text-left rounded-lg px-3 py-2.5 transition-colors border ${
-                  activeProb === i
-                    ? "border-blue-500/50 bg-blue-500/10"
-                    : "border-border hover:border-muted-foreground bg-secondary/30"
-                }`}
-              >
-                <p className="text-sm font-medium truncate">{p.problemTitle}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span
-                    className={`text-[10px] font-semibold ${
-                      p.passRate === 100
-                        ? "text-green-400"
-                        : p.passRate > 0
-                          ? "text-yellow-400"
-                          : "text-red-400"
-                    }`}
-                  >
-                    {p.testCasesPassed}/{p.testCasesTotal} passed
-                  </span>
-                </div>
-              </motion.button>
-            ))}
+            {submission.problemBreakdown.map((p, i) => {
+              const isSelected = activeProb === i;
+              return (
+                <motion.button
+                  key={p.problemId}
+                  variants={{
+                    hidden: { opacity: 0, x: -10 },
+                    show: { opacity: 1, x: 0 },
+                  }}
+                  onClick={() => setActiveProb(i)}
+                  className={`relative w-full text-left rounded-lg px-3.5 py-3 transition-colors border ${
+                    isSelected
+                      ? "border-blue-500/50 text-foreground"
+                      : "border-border hover:border-muted-foreground bg-secondary/20 text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {isSelected && (
+                    <motion.div
+                      layoutId="active-review-prob-pill"
+                      className="absolute inset-0 bg-blue-500/15 rounded-lg -z-10"
+                      transition={{
+                        type: "spring",
+                        bounce: 0.2,
+                        duration: 0.35,
+                      }}
+                    />
+                  )}
+                  <p className="text-sm font-medium truncate relative z-10">
+                    {p.problemTitle}
+                  </p>
+                  <div className="flex items-center gap-2 mt-1 relative z-10">
+                    <span
+                      className={`text-[10px] font-semibold ${
+                        p.passRate === 100
+                          ? "text-green-400"
+                          : p.passRate > 0
+                            ? "text-yellow-400"
+                            : "text-red-400"
+                      }`}
+                    >
+                      {p.testCasesPassed}/{p.testCasesTotal} passed
+                    </span>
+                  </div>
+                </motion.button>
+              );
+            })}
           </motion.div>
 
           {/* Code + details panel */}
           <AnimatePresence mode="wait">
             {problem ? (
-              <motion.div 
+              <motion.div
                 key={problem.problemId}
                 initial={{ opacity: 0, x: 10 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -293,7 +330,7 @@ export default function SubmissionDetailPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-0 pt-2">
-                    <div className="rounded-b-lg overflow-hidden h-[420px]">
+                    <div className="rounded-b-lg overflow-hidden h-105">
                       <MonacoEditor
                         height="420px"
                         language={
