@@ -6,13 +6,15 @@ import { FeaturesSection } from "@/components/marketing/FeaturesSection";
 import { TokenScrollSimulation } from "@/components/marketing/TokenScrollSimulation";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/ui/logo";
+import { FlickeringGrid } from "@/components/ui/flickering-grid";
+import { MagneticButton } from "@/components/ui/magnetic-button";
 
 export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <motion.header 
-        initial={{ y: -100 }} 
-        animate={{ y: 0 }} 
+      <motion.header
+        initial={{ y: -100 }}
+        animate={{ y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
         className="px-6 py-4 flex items-center justify-between sticky top-0 z-50 bg-background/80 backdrop-blur border-b border-border"
       >
@@ -25,12 +27,21 @@ export default function HomePage() {
             </Button>
           </Link>
           <Link href="/register">
-            <Button size="sm">Get Started</Button>
+            <MagneticButton>
+              <Button size="sm">Get Started</Button>
+            </MagneticButton>
           </Link>
         </div>
       </motion.header>
 
-      <main className="flex-1 py-16">
+      <main className="flex-1 py-16 relative">
+        {/* The Flickering Grid acts as an immersive tech background */}
+        <FlickeringGrid
+          color="rgba(59, 130, 246, 0.15)"
+          squareSize={30}
+          flickerChance={0.08}
+        />
+
         <HeroSection />
         <div className="mt-24 mb-12">
           <TokenScrollSimulation />

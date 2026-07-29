@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
+import { MagneticButton } from "@/components/ui/magnetic-button";
 
 export function HeroSection() {
   const container = {
@@ -58,16 +59,23 @@ export function HeroSection() {
         </motion.p>
       </div>
 
-      <motion.div variants={item} className="flex items-center gap-4">
+      <motion.div
+        variants={item}
+        className="flex items-center gap-4 relative z-10"
+      >
         <Link href="/register">
-          <Button size="lg" className="px-8">
-            Start hiring
-          </Button>
+          <MagneticButton>
+            <Button size="lg" className="px-8">
+              Start hiring
+            </Button>
+          </MagneticButton>
         </Link>
         <Link href="/login">
-          <Button size="lg" variant="outline" className="px-8">
-            Sign in
-          </Button>
+          <MagneticButton>
+            <Button size="lg" variant="outline" className="px-8">
+              Sign in
+            </Button>
+          </MagneticButton>
         </Link>
       </motion.div>
     </motion.div>
