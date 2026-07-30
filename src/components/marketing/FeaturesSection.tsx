@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "motion/react";
+import { SpotlightCard } from "@/components/ui/spotlight-card";
 
 export function FeaturesSection() {
   const pillars = [
@@ -52,12 +53,19 @@ export function FeaturesSection() {
         <motion.div
           variants={item}
           key={p.title}
-          whileHover={{ scale: 1.02 }}
-          className="border border-border rounded-xl p-5 text-left space-y-2 hover:border-blue-500/50 transition-colors bg-background"
+          whileHover={{ scale: 1.02, y: -4 }}
+          transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          className="h-full"
         >
-          <span className="text-2xl">{p.icon}</span>
-          <h3 className="font-semibold">{p.title}</h3>
-          <p className="text-sm text-muted-foreground">{p.desc}</p>
+          <SpotlightCard className="h-full p-6 text-left space-y-3">
+            <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 rounded-lg flex items-center justify-center text-2xl relative z-10">
+              {p.icon}
+            </div>
+            <h3 className="font-semibold text-lg relative z-10">{p.title}</h3>
+            <p className="text-sm text-muted-foreground leading-relaxed relative z-10">
+              {p.desc}
+            </p>
+          </SpotlightCard>
         </motion.div>
       ))}
     </motion.div>

@@ -14,6 +14,7 @@ import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
 import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "motion/react";
+import { TypingText } from "@/components/ui/typing-text";
 
 const MonacoEditor = dynamic(() => import("@monaco-editor/react"), {
   ssr: false,
@@ -721,13 +722,13 @@ export default function TestPage() {
                   <AnimatePresence mode="wait">
                     {aiResponse ? (
                       <motion.div
-                        key="response"
+                        key={aiResponse.substring(0, 10)} // Force re-render on new response
                         initial={{ opacity: 0, y: 10, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -10 }}
                         className="text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap"
                       >
-                        {aiResponse}
+                        <TypingText text={aiResponse} />
                       </motion.div>
                     ) : (
                       <motion.p
