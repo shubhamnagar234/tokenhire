@@ -32,7 +32,7 @@ export function HeroSection() {
       variants={container}
       initial="hidden"
       animate="show"
-      className="flex flex-col items-center justify-center px-6 text-center gap-8"
+      className="relative z-10 flex flex-col items-center justify-center px-6 text-center gap-8"
     >
       <div className="space-y-4 max-w-2xl">
         <motion.div variants={item}>

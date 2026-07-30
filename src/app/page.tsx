@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { motion } from "motion/react";
@@ -37,9 +39,9 @@ export default function HomePage() {
       <main className="flex-1 py-16 relative">
         {/* The Flickering Grid acts as an immersive tech background */}
         <FlickeringGrid
-          color="rgba(59, 130, 246, 0.15)"
-          squareSize={30}
-          flickerChance={0.08}
+          color="rgba(59, 130, 246, 0.06)" // Much more subtle opacity
+          squareSize={50} // Larger squares feel more premium and less noisy
+          flickerChance={0.03} // Fewer flickering squares at once
         />
 
         <HeroSection />
