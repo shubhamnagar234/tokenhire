@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { motion, useAnimationControls } from "motion/react";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -49,9 +50,10 @@ export default function RegisterPage() {
         body: JSON.stringify({
           ...form,
           // Only send companyName for recruiters; omit entirely for candidates
-          companyName: form.role === "RECRUITER" && form.companyName.trim()
-            ? form.companyName.trim()
-            : undefined,
+          companyName:
+            form.role === "RECRUITER" && form.companyName.trim()
+              ? form.companyName.trim()
+              : undefined,
         }),
       });
 
@@ -79,7 +81,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4 py-12">
+    <AuroraBackground>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -87,11 +89,13 @@ export default function RegisterPage() {
         className="w-full max-w-md"
       >
         <motion.div animate={controls}>
-          <Card className="w-full">
+          <Card className="w-full bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
             <CardHeader className="space-y-1">
               <Logo />
-              <CardTitle className="text-2xl mt-4">Create account</CardTitle>
-              <CardDescription>Get started with TokenHire</CardDescription>
+              <CardTitle className="text-2xl mt-4">Create an account</CardTitle>
+              <CardDescription>
+                Enter your information to get started
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -112,7 +116,9 @@ export default function RegisterPage() {
                     type="email"
                     placeholder="you@company.com"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -123,7 +129,9 @@ export default function RegisterPage() {
                     type="password"
                     placeholder="••••••••"
                     value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -156,7 +164,7 @@ export default function RegisterPage() {
                 </div>
                 {/* Company name — only shown for recruiters */}
                 {form.role === "RECRUITER" && (
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     className="space-y-2 overflow-hidden"
@@ -166,24 +174,31 @@ export default function RegisterPage() {
                       id="companyName"
                       placeholder="Acme Corp"
                       value={form.companyName}
-                      onChange={(e) => setForm({ ...form, companyName: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, companyName: e.target.value })
+                      }
                     />
                   </motion.div>
                 )}
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Creating account..." : "Create account"}
+                  {loading ? "Creating account..." : "Sign up"}
                 </Button>
               </form>
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                Already have an account?{" "}
-                <Link href="/login" className="text-blue-500 hover:underline">
+              <div className="mt-4 text-center text-sm">
+                <span className="text-muted-foreground">
+                  Already have an account?{" "}
+                </span>
+                <Link
+                  href="/login"
+                  className="text-primary hover:underline font-medium"
+                >
                   Sign in
                 </Link>
-              </p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
       </motion.div>
-    </div>
+    </AuroraBackground>
   );
 }

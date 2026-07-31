@@ -18,6 +18,7 @@ import {
 import { toast } from "sonner";
 import Link from "next/link";
 import { motion, useAnimationControls } from "motion/react";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -66,7 +67,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <AuroraBackground>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -74,11 +75,13 @@ export default function LoginPage() {
         className="w-full max-w-md"
       >
         <motion.div animate={controls}>
-          <Card className="w-full">
+          <Card className="w-full bg-background/80 backdrop-blur-xl border-border/50 shadow-2xl">
             <CardHeader className="space-y-1">
               <Logo />
               <CardTitle className="text-2xl mt-4">Sign in</CardTitle>
-              <CardDescription>Enter your credentials to continue</CardDescription>
+              <CardDescription>
+                Enter your credentials to continue
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
@@ -89,7 +92,9 @@ export default function LoginPage() {
                     type="email"
                     placeholder="you@company.com"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, email: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -98,9 +103,10 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type="password"
-                    placeholder="••••••••"
                     value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, password: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -108,16 +114,21 @@ export default function LoginPage() {
                   {loading ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
-              <p className="text-center text-sm text-muted-foreground mt-4">
-                Don&apos;t have an account?{" "}
-                <Link href="/register" className="text-blue-500 hover:underline">
-                  Register
+              <div className="mt-4 text-center text-sm">
+                <span className="text-muted-foreground">
+                  Don&apos;t have an account?{" "}
+                </span>
+                <Link
+                  href="/register"
+                  className="text-primary hover:underline font-medium"
+                >
+                  Sign up
                 </Link>
-              </p>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
       </motion.div>
-    </div>
+    </AuroraBackground>
   );
 }

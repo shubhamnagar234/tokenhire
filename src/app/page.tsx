@@ -10,6 +10,7 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { Logo } from "@/components/ui/logo";
 import { FlickeringGrid } from "@/components/ui/flickering-grid";
 import { MagneticButton } from "@/components/ui/magnetic-button";
+import { TechMarquee } from "@/components/marketing/TechMarquee";
 
 export default function HomePage() {
   return (
@@ -45,6 +46,11 @@ export default function HomePage() {
         />
 
         <HeroSection />
+
+        <div className="mt-20">
+          <TechMarquee />
+        </div>
+
         <div className="mt-24 mb-12">
           <TokenScrollSimulation />
         </div>
