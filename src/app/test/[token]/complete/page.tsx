@@ -10,6 +10,7 @@ import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/api";
 import { CircularProgress } from "@/components/ui/circular-progress";
 import { Confetti } from "@/components/ui/confetti";
+import { NumberTicker } from "@/components/ui/number-ticker";
 
 interface CompletionData {
   scores: {
@@ -121,7 +122,7 @@ export default function TestCompletePage() {
                   Correctness
                 </p>
                 <p className="text-2xl font-bold text-blue-400">
-                  {data.scores.correctness}
+                  <NumberTicker value={data.scores.correctness} />
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {data.summary.testCasesPassed}/{data.summary.testCasesTotal}{" "}
@@ -135,7 +136,7 @@ export default function TestCompletePage() {
               <CardContent className="pt-4 pb-3">
                 <p className="text-xs text-muted-foreground mb-1">Speed</p>
                 <p className="text-2xl font-bold text-purple-400">
-                  {data.scores.time}
+                  <NumberTicker value={data.scores.time} />
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {data.summary.timeUsedMins} mins used
@@ -150,7 +151,7 @@ export default function TestCompletePage() {
                   Token Efficiency
                 </p>
                 <p className="text-2xl font-bold text-green-400">
-                  {data.scores.tokenSaving}
+                  <NumberTicker value={data.scores.tokenSaving} />
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {data.summary.tokensUsed}/{data.summary.tokenBudget} used
@@ -165,7 +166,7 @@ export default function TestCompletePage() {
                   Code Quality
                 </p>
                 <p className="text-2xl font-bold text-orange-400">
-                  {data.scores.codeQuality}
+                  <NumberTicker value={data.scores.codeQuality} />
                 </p>
                 <p className="text-xs text-muted-foreground">
                   AI-assisted review

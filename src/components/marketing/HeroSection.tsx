@@ -2,66 +2,50 @@
 
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { motion } from "motion/react";
 import { AnimatedGradientText } from "@/components/ui/animated-gradient-text";
 import { MagneticButton } from "@/components/ui/magnetic-button";
+import { BlurTextReveal } from "@/components/ui/blur-text-reveal";
 
 export function HeroSection() {
-  const container = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.15,
-        delayChildren: 0.1,
-      },
-    },
-  };
-
-  const item = {
-    hidden: { opacity: 0, y: 20 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" as const },
-    },
-  };
-
   return (
-    <motion.div
-      variants={container}
-      initial="hidden"
-      animate="show"
-      className="relative z-10 flex flex-col items-center justify-center px-6 text-center gap-8"
-    >
+    <div className="relative z-10 flex flex-col items-center justify-center px-6 text-center gap-8 min-h-[50vh]">
       <div className="space-y-4 max-w-2xl">
-        <motion.div variants={item}>
-          <div className="inline-block px-3 py-1 rounded-full border border-blue-500/30 bg-blue-500/10 text-blue-400 text-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Badge
+            variant="secondary"
+            className="px-4 py-1.5 text-sm rounded-full bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors border border-blue-500/20"
+          >
             The future of technical hiring
-          </div>
+          </Badge>
         </motion.div>
 
-        <motion.h1
-          variants={item}
-          className="text-5xl md:text-6xl font-bold leading-tight"
-        >
-          Hire engineers who use{" "}
-          <AnimatedGradientText>AI efficiently</AnimatedGradientText>
-        </motion.h1>
+        <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-foreground mt-4">
+          <BlurTextReveal text="Hire engineers who use " delay={0.3} />
+          <BlurTextReveal
+            text={<AnimatedGradientText>AI efficiently</AnimatedGradientText>}
+            delay={0.8}
+          />
+        </h1>
 
-        <motion.p
-          variants={item}
-          className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto"
-        >
-          TokenHire gives every candidate the same AI token budget. How
-          efficiently they use it — alongside correctness and speed — determines
-          their rank.
-        </motion.p>
+        <p className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto mt-6">
+          <BlurTextReveal
+            text="TokenHire gives every candidate the same AI token budget. How efficiently they use it — alongside correctness and speed — determines their rank."
+            delay={1.2}
+          />
+        </p>
       </div>
 
       <motion.div
-        variants={item}
-        className="flex items-center gap-4 relative z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 2, duration: 0.5 }}
+        className="flex items-center gap-4 relative z-10 mt-4"
       >
         <Link href="/register">
           <MagneticButton>
@@ -78,6 +62,6 @@ export function HeroSection() {
           </MagneticButton>
         </Link>
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
