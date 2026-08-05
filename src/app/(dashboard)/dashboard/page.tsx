@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "motion/react";
 import { NumberTicker } from "@/components/ui/number-ticker";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { TiltCard } from "@/components/ui/tilt-card";
 
 interface Test {
   id: string;
@@ -288,77 +289,78 @@ export default function DashboardPage() {
                     hidden: { opacity: 0, y: 10 },
                     show: { opacity: 1, y: 0 },
                   }}
-                  whileHover={{ scale: 1.01 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="hover:border-blue-500/50 transition-colors">
-                    <CardContent className="flex items-center justify-between py-4 gap-4">
-                      {/* Left — title + meta */}
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div className="min-w-0">
-                          <p className="font-medium truncate">{test.title}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {test.problems.length} problems ·{" "}
-                            {test.timeLimitMins} mins · {test.tokenBudget}{" "}
-                            tokens
-                          </p>
+                  <TiltCard tiltMaxAngleX={3} tiltMaxAngleY={3}>
+                    <Card className="hover:border-blue-500/50 transition-colors bg-background">
+                      <CardContent className="flex items-center justify-between py-4 gap-4">
+                        {/* Left — title + meta */}
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div className="min-w-0">
+                            <p className="font-medium truncate">{test.title}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {test.problems.length} problems ·{" "}
+                              {test.timeLimitMins} mins · {test.tokenBudget}{" "}
+                              tokens
+                            </p>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Right — badges + actions */}
-                      <div className="flex items-center gap-2 shrink-0">
-                        {/* AI model badge */}
-                        <Badge
-                          variant="outline"
-                          className={`text-xs ${
-                            test.aiModel === "GEMINI_2_5_PRO"
-                              ? "border-purple-500/50 text-purple-400"
-                              : "border-blue-500/50 text-blue-400"
-                          }`}
-                        >
-                          {test.aiModel === "GEMINI_2_5_PRO"
-                            ? "✦ Gemini 2.5 Pro"
-                            : "⚡ Gemini 2.5 Flash"}
-                        </Badge>
-
-                        {/* Status badge */}
-                        <Badge
-                          variant="outline"
-                          className={`text-xs font-semibold ${STATUS_STYLE[test.status]}`}
-                        >
-                          {test.status}
-                        </Badge>
-
-                        <span className="text-sm text-muted-foreground">
-                          {test.invites.length} invited
-                        </span>
-
-                        {/* Status transition buttons */}
-                        {transitions.map((t) => (
-                          <Button
-                            key={t.next}
-                            variant={t.variant}
-                            size="sm"
-                            disabled={isUpdating}
-                            onClick={() => handleStatusChange(test.id, t.next)}
-                            className={
-                              t.variant === "default"
-                                ? "bg-green-600 hover:bg-green-700 text-white border-0"
-                                : ""
-                            }
+                        {/* Right — badges + actions */}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {/* AI model badge */}
+                          <Badge
+                            variant="outline"
+                            className={`text-xs ${
+                              test.aiModel === "GEMINI_2_5_PRO"
+                                ? "border-purple-500/50 text-purple-400"
+                                : "border-blue-500/50 text-blue-400"
+                            }`}
                           >
-                            {isUpdating ? "…" : t.label}
-                          </Button>
-                        ))}
+                            {test.aiModel === "GEMINI_2_5_PRO"
+                              ? "✦ Gemini 2.5 Pro"
+                              : "⚡ Gemini 2.5 Flash"}
+                          </Badge>
 
-                        <Link href={`/dashboard/tests/${test.id}`}>
-                          <Button variant="outline" size="sm">
-                            View
-                          </Button>
-                        </Link>
-                      </div>
-                    </CardContent>
-                  </Card>
+                          {/* Status badge */}
+                          <Badge
+                            variant="outline"
+                            className={`text-xs font-semibold ${STATUS_STYLE[test.status]}`}
+                          >
+                            {test.status}
+                          </Badge>
+
+                          <span className="text-sm text-muted-foreground">
+                            {test.invites.length} invited
+                          </span>
+
+                          {/* Status transition buttons */}
+                          {transitions.map((t) => (
+                            <Button
+                              key={t.next}
+                              variant={t.variant}
+                              size="sm"
+                              disabled={isUpdating}
+                              onClick={() => handleStatusChange(test.id, t.next)}
+                              className={
+                                t.variant === "default"
+                                  ? "bg-green-600 hover:bg-green-700 text-white border-0"
+                                  : ""
+                              }
+                            >
+                              {isUpdating ? "…" : t.label}
+                            </Button>
+                          ))}
+
+                          <Link href={`/dashboard/tests/${test.id}`}>
+                            <Button variant="secondary" size="sm">
+                              View
+                            </Button>
+                          </Link>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TiltCard>
                 </motion.div>
               );
             })}

@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
+import { CustomCursor } from "@/components/ui/custom-cursor";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const geistMono = Geist_Mono({
@@ -25,6 +26,7 @@ export default function RootLayout({
       <body
         className={`${geist.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
       >
+        <CustomCursor />
         <Providers>{children}</Providers>
         <Toaster />
       </body>
