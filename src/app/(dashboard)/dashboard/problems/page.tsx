@@ -16,6 +16,7 @@ import { useHydrated } from "@/lib/hooks/useHydrated";
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { SpotlightCard } from "@/components/ui/spotlight-card";
+import { Dock } from "@/components/ui/dock";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -413,6 +414,33 @@ export default function ProblemsPage() {
           </motion.div>
         )}
       </main>
+
+      {/* Mac-style Dock Navigation */}
+      <Dock
+        items={[
+          {
+            label: "Dashboard",
+            href: "/dashboard",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+            ),
+          },
+          {
+            label: "Problem Bank",
+            href: "/dashboard/problems",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+            ),
+          },
+          {
+            label: "Create Test",
+            href: "/dashboard/tests/new",
+            icon: (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+            ),
+          },
+        ]}
+      />
     </div>
   );
 }
