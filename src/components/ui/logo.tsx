@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { motion } from "motion/react";
 
 interface LogoProps {
@@ -21,25 +20,48 @@ export function Logo({
   };
 
   const textSizeClasses = {
-    sm: "text-base",
-    md: "text-lg",
-    lg: "text-2xl",
+    sm: "text-lg",
+    md: "text-2xl",
+    lg: "text-4xl",
+  };
+
+  const dotSizeClasses = {
+    sm: "w-1 h-1 -top-0.5",
+    md: "w-1.5 h-1.5 -top-1",
+    lg: "w-2 h-2 -top-1",
   };
 
   return (
-    <motion.div 
+    <motion.div
       className={`flex items-center gap-2 ${className}`}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
+      whileHover={{ scale: 1.02 }}
+      whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
     >
-      <div
-        className={`${sizeClasses[size]} bg-blue-600 rounded-lg flex items-center justify-center shadow-md`}
-      >
-        <span className="text-white font-bold">T</span>
-      </div>
-      {showText && (
-        <span className={`font-bold ${textSizeClasses[size]}`}>TokenHire</span>
+      {!showText ? (
+        <div
+          className={`${sizeClasses[size]} bg-foreground rounded-md flex items-center justify-center`}
+        >
+          <span className="text-background font-bold font-sans">T</span>
+        </div>
+      ) : (
+        <span
+          className={`font-bold font-sans tracking-tighter flex items-baseline text-foreground ${textSizeClasses[size]}`}
+        >
+          TokenH
+          <span className="relative inline-flex flex-col items-center justify-center">
+            <motion.span
+              animate={{ opacity: [0.6, 1, 0.6] }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              className={`absolute bg-blue-500 rounded-full ${dotSizeClasses[size]}`}
+              style={{
+                boxShadow: "0 0 12px 2px rgba(59,130,246,0.8)",
+              }}
+            />
+            <span>ı</span>
+          </span>
+          re
+        </span>
       )}
     </motion.div>
   );

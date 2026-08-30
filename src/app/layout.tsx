@@ -1,14 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, Manrope } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 import { Toaster } from "@/components/ui/sonner";
-import { CustomCursor } from "@/components/ui/custom-cursor";
 
-const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
-const geistMono = Geist_Mono({
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const manrope = Manrope({
   subsets: ["latin"],
-  variable: "--font-geist-mono",
+  variable: "--font-manrope",
 });
 
 export const metadata: Metadata = {
@@ -24,9 +23,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geist.variable} ${geistMono.variable} antialiased bg-background text-foreground`}
+        className={`${inter.variable} ${manrope.variable} antialiased bg-background text-foreground`}
       >
-        <CustomCursor />
         <Providers>{children}</Providers>
         <Toaster />
       </body>

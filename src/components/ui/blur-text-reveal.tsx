@@ -24,7 +24,7 @@ export function BlurTextReveal({
             visible: { filter: "blur(0px)", opacity: 1, y: 0 },
           }}
           transition={{ duration: 0.5, ease: "easeOut" }}
-          className="inline-block"
+          className="inline-block whitespace-pre-wrap"
         >
           {word === "\n" ? <br /> : word}
         </motion.span>
@@ -38,7 +38,7 @@ export function BlurTextReveal({
           visible: { filter: "blur(0px)", opacity: 1, y: 0 },
         }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="inline-block"
+        className="inline-block whitespace-pre-wrap"
       >
         {text}
       </motion.span>

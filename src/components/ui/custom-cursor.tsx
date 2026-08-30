@@ -95,7 +95,7 @@ export function CustomCursor() {
           borderWidth: isHovering ? "1px" : "2px",
           backgroundColor: isHovering
             ? "rgba(59, 130, 246, 0.1)"
-            : "transparent",
+            : "rgba(59, 130, 246, 0)",
         }}
         transition={{ duration: 0.2 }}
       />
