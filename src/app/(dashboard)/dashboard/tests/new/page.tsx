@@ -28,7 +28,7 @@ export default function NewTestPage() {
     weightTime: 0.2,
     weightTokenSaving: 0.2,
     weightCodeQuality: 0.1,
-    aiModel: "GEMINI_2_5_FLASH" as "GEMINI_2_5_FLASH" | "GEMINI_2_5_PRO",
+    aiModel: "google/gemini-2.5-flash:free",
   });
 
   useEffect(() => {
@@ -74,8 +74,8 @@ export default function NewTestPage() {
         </header>
         <main className="max-w-4xl mx-auto p-6">
           <div className="space-y-6">
-            <Skeleton className="h-[200px] w-full rounded-xl" />
-            <Skeleton className="h-[200px] w-full rounded-xl" />
+            <Skeleton className="h-50 w-full rounded-xl" />
+            <Skeleton className="h-50 w-full rounded-xl" />
             <div className="flex justify-end gap-4">
               <Skeleton className="h-10 w-24" />
               <Skeleton className="h-10 w-32" />
@@ -98,201 +98,227 @@ export default function NewTestPage() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 py-8">
-        <motion.form 
-          onSubmit={handleCreateTest} 
+        <motion.form
+          onSubmit={handleCreateTest}
           className="space-y-6"
           initial="hidden"
           animate="show"
           variants={{
-            show: { transition: { staggerChildren: 0.1 } }
+            show: { transition: { staggerChildren: 0.1 } },
           }}
         >
           {/* Basic info */}
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 },
+            }}
+          >
             <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Test Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Title</Label>
-                <Input
-                  placeholder="e.g. Frontend Engineer Assessment"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Description (optional)</Label>
-                <Input
-                  placeholder="Brief description for candidates"
-                  value={form.description}
-                  onChange={(e) =>
-                    setForm({ ...form, description: e.target.value })
-                  }
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+              <CardHeader>
+                <CardTitle className="text-base">Test Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Time Limit (minutes)</Label>
+                  <Label>Title</Label>
                   <Input
-                    type="number"
-                    min={10}
-                    max={180}
-                    value={form.timeLimitMins}
+                    placeholder="e.g. Frontend Engineer Assessment"
+                    value={form.title}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        timeLimitMins: Number(e.target.value),
-                      })
+                      setForm({ ...form, title: e.target.value })
                     }
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Token Budget</Label>
+                  <Label>Description (optional)</Label>
                   <Input
-                    type="number"
-                    min={100}
-                    max={10000}
-                    step={100}
-                    value={form.tokenBudget}
+                    placeholder="Brief description for candidates"
+                    value={form.description}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        tokenBudget: parseInt(e.target.value, 10) || 0,
-                      })
+                      setForm({ ...form, description: e.target.value })
                     }
-                    required
                   />
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Time Limit (minutes)</Label>
+                    <Input
+                      type="number"
+                      min={10}
+                      max={180}
+                      value={form.timeLimitMins}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          timeLimitMins: Number(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Token Budget</Label>
+                    <Input
+                      type="number"
+                      min={100}
+                      max={10000}
+                      step={100}
+                      value={form.tokenBudget}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          tokenBudget: parseInt(e.target.value, 10) || 0,
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
 
           {/* AI Model Selector */}
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">AI Assistant Model</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {(
-                [
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 },
+            }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">AI Assistant Model</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {[
                   {
-                    value: "GEMINI_2_5_FLASH",
+                    value: "google/gemini-2.5-flash:free",
                     label: "Gemini 2.5 Flash",
-                    desc: "Fast & cost-effective — ideal for most assessments",
-                    badge: "Recommended",
+                    desc: "Fast and versatile reasoning (Google)",
+                    badge: "Free",
                   },
                   {
-                    value: "GEMINI_2_5_PRO",
-                    label: "Gemini 2.5 Pro",
-                    desc: "Advanced reasoning — best for complex technical roles",
-                    badge: "Pro",
+                    value: "meta-llama/llama-3-8b-instruct:free",
+                    label: "Llama 3 8B",
+                    desc: "Excellent open-weight model (Meta)",
+                    badge: "Free",
                   },
-                ] as const
-              ).map((model) => (
-                <button
-                  key={model.value}
-                  type="button"
-                  onClick={() => setForm({ ...form, aiModel: model.value })}
-                  className={`w-full flex items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors ${
-                    form.aiModel === model.value
-                      ? "border-blue-500 bg-blue-500/10"
-                      : "border-border hover:border-muted-foreground"
-                  }`}
-                >
-                  <div>
-                    <p className="text-sm font-medium">{model.label}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {model.desc}
-                    </p>
-                  </div>
-                  <span
-                    className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      model.value === "GEMINI_2_5_PRO"
-                        ? "bg-purple-500/20 text-purple-400"
-                        : "bg-blue-500/20 text-blue-400"
+                  {
+                    value: "qwen/qwen-2-72b-instruct:free",
+                    label: "Qwen 2 72B",
+                    desc: "Massive scale and intelligence (Alibaba)",
+                    badge: "Free",
+                  },
+                  {
+                    value: "mistralai/mistral-7b-instruct:free",
+                    label: "Mistral 7B",
+                    desc: "Highly efficient reasoning (Mistral AI)",
+                    badge: "Free",
+                  },
+                ].map((model) => (
+                  <button
+                    key={model.value}
+                    type="button"
+                    onClick={() => setForm({ ...form, aiModel: model.value })}
+                    className={`w-full flex items-center justify-between rounded-lg border px-4 py-3 text-left transition-colors ${
+                      form.aiModel === model.value
+                        ? "border-blue-500 bg-blue-500/10"
+                        : "border-border hover:border-muted-foreground"
                     }`}
                   >
-                    {model.badge}
-                  </span>
-                </button>
-              ))}
-            </CardContent>
-          </Card>
+                    <div>
+                      <p className="text-sm font-medium">{model.label}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {model.desc}
+                      </p>
+                    </div>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-400">
+                      {model.badge}
+                    </span>
+                  </button>
+                ))}
+              </CardContent>
+            </Card>
           </motion.div>
 
           {/* Scoring weights */}
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">
-                Scoring Weights
-                <span
-                  className={`ml-2 text-sm font-normal ${weightsValid ? "text-green-400" : "text-red-400"}`}
-                >
-                  Total: {totalWeight.toFixed(2)}{" "}
-                  {weightsValid ? "✓" : "(must equal 1.0)"}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {[
-                {
-                  key: "weightCorrectness",
-                  label: "Correctness",
-                  desc: "Test cases passed",
-                },
-                {
-                  key: "weightTime",
-                  label: "Speed",
-                  desc: "Time remaining bonus",
-                },
-                {
-                  key: "weightTokenSaving",
-                  label: "Token Efficiency",
-                  desc: "Fewer tokens = higher score",
-                },
-                {
-                  key: "weightCodeQuality",
-                  label: "Code Quality",
-                  desc: "AI-assessed quality",
-                },
-              ].map((w) => (
-                <div key={w.key} className="flex items-center gap-4">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{w.label}</p>
-                    <p className="text-xs text-muted-foreground">{w.desc}</p>
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 },
+            }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">
+                  Scoring Weights
+                  <span
+                    className={`ml-2 text-sm font-normal ${weightsValid ? "text-green-400" : "text-red-400"}`}
+                  >
+                    Total: {totalWeight.toFixed(2)}{" "}
+                    {weightsValid ? "✓" : "(must equal 1.0)"}
+                  </span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {[
+                  {
+                    key: "weightCorrectness",
+                    label: "Correctness",
+                    desc: "Test cases passed",
+                  },
+                  {
+                    key: "weightTime",
+                    label: "Speed",
+                    desc: "Time remaining bonus",
+                  },
+                  {
+                    key: "weightTokenSaving",
+                    label: "Token Efficiency",
+                    desc: "Fewer tokens = higher score",
+                  },
+                  {
+                    key: "weightCodeQuality",
+                    label: "Code Quality",
+                    desc: "AI-assessed quality",
+                  },
+                ].map((w) => (
+                  <div key={w.key} className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">{w.label}</p>
+                      <p className="text-xs text-muted-foreground">{w.desc}</p>
+                    </div>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={1}
+                      step={0.1}
+                      className="w-24"
+                      value={form[w.key as keyof typeof form]}
+                      onChange={(e) =>
+                        setForm({ ...form, [w.key]: Number(e.target.value) })
+                      }
+                    />
                   </div>
-                  <Input
-                    type="number"
-                    min={0}
-                    max={1}
-                    step={0.1}
-                    className="w-24"
-                    value={form[w.key as keyof typeof form]}
-                    onChange={(e) =>
-                      setForm({ ...form, [w.key]: Number(e.target.value) })
-                    }
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
+                ))}
+              </CardContent>
+            </Card>
           </motion.div>
 
-          <motion.div variants={{ hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0 } }}>
-            <Button
-            type="submit"
-            className="w-full"
-            disabled={loading || !weightsValid}
+          <motion.div
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              show: { opacity: 1, y: 0 },
+            }}
           >
-            {loading ? "Creating..." : "Create Test"}
-          </Button>
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={loading || !weightsValid}
+            >
+              {loading ? "Creating..." : "Create Test"}
+            </Button>
           </motion.div>
         </motion.form>
       </main>

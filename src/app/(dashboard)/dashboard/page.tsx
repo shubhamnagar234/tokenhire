@@ -314,15 +314,13 @@ export default function DashboardPage() {
                           {/* AI model badge */}
                           <Badge
                             variant="outline"
-                            className={`text-xs ${
-                              test.aiModel === "GEMINI_2_5_PRO"
-                                ? "border-purple-500/50 text-purple-400"
-                                : "border-blue-500/50 text-blue-400"
-                            }`}
+                            className="text-xs border-blue-500/50 text-blue-400"
                           >
-                            {test.aiModel === "GEMINI_2_5_PRO"
-                              ? "✦ Gemini 2.5 Pro"
-                              : "⚡ Gemini 2.5 Flash"}
+                            ⚡{" "}
+                            {test.aiModel
+                              .split("/")
+                              .pop()
+                              ?.replace(":free", "")}
                           </Badge>
 
                           {/* Status badge */}
@@ -344,7 +342,9 @@ export default function DashboardPage() {
                               variant={t.variant}
                               size="sm"
                               disabled={isUpdating}
-                              onClick={() => handleStatusChange(test.id, t.next)}
+                              onClick={() =>
+                                handleStatusChange(test.id, t.next)
+                              }
                               className={
                                 t.variant === "default"
                                   ? "bg-green-600 hover:bg-green-700 text-white border-0"
@@ -409,21 +409,61 @@ export default function DashboardPage() {
             label: "Dashboard",
             href: "/dashboard",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect width="7" height="9" x="3" y="3" rx="1" />
+                <rect width="7" height="5" x="14" y="3" rx="1" />
+                <rect width="7" height="9" x="14" y="12" rx="1" />
+                <rect width="7" height="5" x="3" y="16" rx="1" />
+              </svg>
             ),
           },
           {
             label: "Problem Bank",
             href: "/dashboard/problems",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+              </svg>
             ),
           },
           {
             label: "Create Test",
             href: "/dashboard/tests/new",
             icon: (
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="M12 5v14" />
+              </svg>
             ),
           },
         ]}

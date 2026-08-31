@@ -684,12 +684,9 @@ export default function TestPage() {
                 <div className="border-b border-border px-4 py-3 flex items-center justify-between">
                   <div>
                     <span className="font-medium text-sm">AI Assistant</span>
-                    <p
-                      className={`text-[10px] mt-0.5 font-semibold ${test.aiModel === "GEMINI_2_5_PRO" ? "text-purple-400" : "text-blue-400"}`}
-                    >
-                      {test.aiModel === "GEMINI_2_5_PRO"
-                        ? "✦ Powered by Gemini 2.5 Pro"
-                        : "⚡ Powered by Gemini 2.5 Flash"}
+                    <p className="text-[10px] mt-0.5 font-semibold text-blue-400">
+                      ⚡ Powered by{" "}
+                      {test.aiModel.split("/").pop()?.replace(":free", "")}
                     </p>
                   </div>
                   <span className="text-xs text-muted-foreground">

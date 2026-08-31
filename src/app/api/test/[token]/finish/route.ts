@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
 import { calculateScore } from "@/lib/scoring";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 
@@ -10,29 +10,27 @@ const schema = z.object({
   submissionId: z.string(),
 });
 
-const MODEL_MAP: Record<string, string> = {
-  GEMINI_2_5_FLASH: "gemini-2.5-flash",
-  GEMINI_2_5_PRO: "gemini-2.5-pro",
-};
-
 /** Ask the LLM to rate overall code quality 0–100. Returns undefined on any failure. */
 async function getAICodeQualityScore(
   answers: { code: string; language: string }[],
-  modelName: string
+  modelName: string,
 ): Promise<number | undefined> {
   if (answers.length === 0) return undefined;
 
   try {
-    const llm = new ChatGoogleGenerativeAI({
-      model: modelName,
-      apiKey: process.env.GEMINI_API_KEY,
-      maxOutputTokens: 64,
+    const llm = new ChatOpenAI({
+      modelName: modelName,
+      openAIApiKey: process.env.OPENROUTER_API_KEY,
+      configuration: {
+        baseURL: "https://openrouter.ai/api/v1",
+      },
+      maxTokens: 64,
     });
 
     const codeBlock = answers
       .map(
         (a, i) =>
-          `### Solution ${i + 1} (${a.language})\n\`\`\`\n${a.code.slice(0, 1500)}\n\`\`\``
+          `### Solution ${i + 1} (${a.language})\n\`\`\`\n${a.code.slice(0, 1500)}\n\`\`\``,
       )
       .join("\n\n");
 
@@ -40,11 +38,11 @@ async function getAICodeQualityScore(
       new SystemMessage(
         "You are a senior software engineer reviewing candidate code quality. " +
           "Evaluate readability, naming conventions, edge-case handling, and idiomatic style. " +
-          "Respond with ONLY a valid JSON object in this exact format: { \"score\": <integer 0-100> }. " +
-          "No explanation, no markdown, no extra text."
+          'Respond with ONLY a valid JSON object in this exact format: { "score": <integer 0-100> }. ' +
+          "No explanation, no markdown, no extra text.",
       ),
       new HumanMessage(
-        `Rate the overall code quality of the following candidate solutions:\n\n${codeBlock}`
+        `Rate the overall code quality of the following candidate solutions:\n\n${codeBlock}`,
       ),
     ];
 
@@ -52,10 +50,17 @@ async function getAICodeQualityScore(
     const text = (result.content as string).trim();
 
     // strip markdown fences if model wraps in ```json ... ```
-    const cleaned = text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    const cleaned = text
+      .replace(/^```(?:json)?\s*/i, "")
+      .replace(/\s*```$/, "")
+      .trim();
     const parsed = JSON.parse(cleaned);
 
-    if (typeof parsed.score === "number" && parsed.score >= 0 && parsed.score <= 100) {
+    if (
+      typeof parsed.score === "number" &&
+      parsed.score >= 0 &&
+      parsed.score <= 100
+    ) {
       return Math.round(parsed.score);
     }
   } catch {
@@ -109,10 +114,10 @@ export const POST = withAuth(async (req, user) => {
     const test = submission.invite.test;
 
     // ── AI Code Quality Review ────────────────────────────────────────────────
-    const modelName = MODEL_MAP[test.aiModel] ?? "gemini-2.5-flash";
+    const modelName = test.aiModel || "google/gemini-2.5-flash:free";
     const codeQualityScore = await getAICodeQualityScore(
       submission.answers.map((a) => ({ code: a.code, language: a.language })),
-      modelName
+      modelName,
     );
     // ─────────────────────────────────────────────────────────────────────────
 
@@ -167,9 +172,11 @@ export const POST = withAuth(async (req, user) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: error.issues }, { status: 422 })
+      return NextResponse.json({ error: error.issues }, { status: 422 });
     }
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   }
 }, "CANDIDATE");
-

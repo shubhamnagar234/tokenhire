@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { aiRateLimit } from "@/lib/rate-limit";
@@ -33,13 +33,13 @@ export const POST = withAuth(async (req, user) => {
       if (!success) {
         return NextResponse.json(
           { error: "Too many AI requests. Please slow down." },
-          { status: 429 }
+          { status: 429 },
         );
       }
     } else if (process.env.NODE_ENV === "production") {
       return NextResponse.json(
         { error: "Rate limiting is required in production." },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -73,7 +73,7 @@ export const POST = withAuth(async (req, user) => {
     if (!testProblem) {
       return NextResponse.json(
         { error: "Problem not found or not part of this test" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -86,19 +86,18 @@ export const POST = withAuth(async (req, user) => {
       );
     }
 
-    // Map the Prisma AIModel enum to the LangChain model string
-    const MODEL_MAP: Record<string, string> = {
-      GEMINI_2_5_FLASH: "gemini-2.5-flash",
-      GEMINI_2_5_PRO: "gemini-2.5-pro",
-    };
+    // Use the model string directly since it's now stored as the exact OpenRouter model ID
     const modelName =
-      MODEL_MAP[submission.invite.test.aiModel] ?? "gemini-2.5-flash";
+      submission.invite.test.aiModel || "google/gemini-2.5-flash:free";
 
-    // LangChain + Gemini call
-    const llm = new ChatGoogleGenerativeAI({
-      model: modelName,
-      apiKey: process.env.GEMINI_API_KEY,
-      maxOutputTokens: Math.min(500, tokensRemaining),
+    // LangChain + OpenRouter call
+    const llm = new ChatOpenAI({
+      modelName: modelName,
+      openAIApiKey: process.env.OPENROUTER_API_KEY,
+      configuration: {
+        baseURL: "https://openrouter.ai/api/v1",
+      },
+      maxTokens: Math.min(500, tokensRemaining),
     });
 
     const systemPrompt = SYSTEM_PROMPTS[promptType] ?? SYSTEM_PROMPTS.HINT;
@@ -159,4 +158,3 @@ export const POST = withAuth(async (req, user) => {
     );
   }
 }, "CANDIDATE");
-

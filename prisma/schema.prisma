@@ -66,7 +66,7 @@ model Test {
   weightTokenSaving Float @default(0.2)
   weightCodeQuality Float @default(0.1)
 
-  aiModel   AIModel    @default(GEMINI_2_5_FLASH)
+  aiModel   String     @default("google/gemini-2.5-flash:free")
   status    TestStatus @default(DRAFT)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
@@ -84,11 +84,6 @@ enum TestStatus {
   DRAFT
   ACTIVE
   CLOSED
-}
-
-enum AIModel {
-  GEMINI_2_5_FLASH
-  GEMINI_2_5_PRO
 }
 
 model Problem {
