@@ -103,11 +103,11 @@ export const POST = withAuth(async (req, user) => {
 
     // aggregate test cases across all answers
     const totalPassed = submission.answers.reduce(
-      (sum, a) => sum + a.testCasesPassed,
+      (sum: number, a: { testCasesPassed: number }) => sum + a.testCasesPassed,
       0,
     );
     const totalCases = submission.answers.reduce(
-      (sum, a) => sum + a.testCasesTotal,
+      (sum: number, a: { testCasesTotal: number }) => sum + a.testCasesTotal,
       0,
     );
 
@@ -116,7 +116,10 @@ export const POST = withAuth(async (req, user) => {
     // ── AI Code Quality Review ────────────────────────────────────────────────
     const modelName = test.aiModel || "google/gemini-2.5-flash:free";
     const codeQualityScore = await getAICodeQualityScore(
-      submission.answers.map((a) => ({ code: a.code, language: a.language })),
+      submission.answers.map((a: { code: string; language: string }) => ({
+        code: a.code,
+        language: a.language,
+      })),
       modelName,
     );
     // ─────────────────────────────────────────────────────────────────────────
