@@ -48,7 +48,7 @@ export const POST = withAuth(async (req, user, context) => {
     });
 
     if (duplicates.length > 0) {
-      const dupeEmails = duplicates.map((d) => d.email);
+      const dupeEmails = duplicates.map((d: { email: string }) => d.email);
       return NextResponse.json(
         {
           error: `Active invite already exists for: ${dupeEmails.join(", ")}. Revoke it first before re-inviting.`,
@@ -59,7 +59,7 @@ export const POST = withAuth(async (req, user, context) => {
 
     // create all invites in a single INSERT statement, then fetch them back
     await prisma.testInvite.createMany({
-      data: emails.map((email) => ({ email, testId, expiresAt })),
+      data: emails.map((email: string) => ({ email, testId, expiresAt })),
     });
 
     const invites = await prisma.testInvite.findMany({
@@ -68,18 +68,30 @@ export const POST = withAuth(async (req, user, context) => {
     });
 
     // build invite links
-    const inviteLinks = invites.map((invite) => ({
-      email: invite.email,
-      token: invite.token,
-      link: `${process.env.NEXT_PUBLIC_APP_URL}/test/${invite.token}`,
-      expiresAt: invite.expiresAt,
-    }));
+    const inviteLinks = invites.map(
+      (invite: {
+        id: string;
+        email: string;
+        token: string;
+        expiresAt: Date;
+      }) => ({
+        email: invite.email,
+        token: invite.token,
+        link: `${process.env.NEXT_PUBLIC_APP_URL}/test/${invite.token}`,
+        expiresAt: invite.expiresAt,
+      }),
+    );
 
     // send emails asynchronously (don't block the response)
     Promise.all(
-      inviteLinks.map((invite) =>
-        sendInviteEmail(invite.email, test.title, invite.link, test.company.name)
-      )
+      inviteLinks.map((invite: { id: string; email: string; link: string }) =>
+        sendInviteEmail(
+          invite.email,
+          test.title,
+          invite.link,
+          test.company.name,
+        ),
+      ),
     ).catch((err) => console.error("Failed to send invite emails", err));
 
     return NextResponse.json({ invites: inviteLinks });

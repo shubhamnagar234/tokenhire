@@ -65,25 +65,42 @@ export const GET = withAuth(async (req, user, context) => {
   }
 
   // Build per-problem breakdown
-  const problemBreakdown = submission.answers.map((answer) => ({
-    problemId: answer.problem.id,
-    problemTitle: answer.problem.title,
-    difficulty: answer.problem.difficulty,
-    description: answer.problem.description,
-    language: answer.language,
-    code: answer.code,
-    testCasesPassed: answer.testCasesPassed,
-    testCasesTotal: answer.testCasesTotal,
-    passRate:
-      answer.testCasesTotal > 0
-        ? Math.round((answer.testCasesPassed / answer.testCasesTotal) * 100)
-        : 0,
-    submittedAt: answer.submittedAt,
-  }));
+  const problemBreakdown = submission.answers.map(
+    (answer: {
+      problem: {
+        id: string;
+        title: string;
+        difficulty: string;
+        description: string;
+      };
+      language: string;
+      code: string;
+      testCasesPassed: number;
+      testCasesTotal: number;
+      submittedAt: Date;
+    }) => ({
+      problemId: answer.problem.id,
+      problemTitle: answer.problem.title,
+      difficulty: answer.problem.difficulty,
+      description: answer.problem.description,
+      language: answer.language,
+      code: answer.code,
+      testCasesPassed: answer.testCasesPassed,
+      testCasesTotal: answer.testCasesTotal,
+      passRate:
+        answer.testCasesTotal > 0
+          ? Math.round((answer.testCasesPassed / answer.testCasesTotal) * 100)
+          : 0,
+      submittedAt: answer.submittedAt,
+    }),
+  );
 
   // AI usage breakdown per prompt type
   const aiUsage = submission.tokenLogs.reduce(
-    (acc, log) => {
+    (
+      acc: Record<string, number>,
+      log: { promptType: string; tokensUsed: number },
+    ) => {
       acc[log.promptType] = (acc[log.promptType] ?? 0) + log.tokensUsed;
       return acc;
     },
