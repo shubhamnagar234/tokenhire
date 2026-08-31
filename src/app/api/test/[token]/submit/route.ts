@@ -169,12 +169,12 @@ export const POST = withAuth(async (req, user) => {
 
     // run all test cases
     const results = await Promise.all(
-      problem.testCases.map((tc) =>
+      problem.testCases.map((tc: { input: string; expected: string }) =>
         executeCode(code, language, tc.input, tc.expected),
       ),
     );
 
-    const passed = results.filter((r) => r.passed).length;
+    const passed = results.filter((r: { passed: boolean }) => r.passed).length;
     const total = results.length;
 
     // calculate tokens used for this specific problem
@@ -207,12 +207,17 @@ export const POST = withAuth(async (req, user) => {
         passed,
         total,
         percentage: total > 0 ? Math.round((passed / total) * 100) : 0,
-        details: results.map((r, i) => ({
-          testCase: i + 1,
-          passed: r.passed,
-          actual: r.actual,
-          error: r.error,
-        })),
+        details: results.map(
+          (
+            r: { passed: boolean; actual?: string; error?: string },
+            i: number,
+          ) => ({
+            testCase: i + 1,
+            passed: r.passed,
+            actual: r.actual,
+            error: r.error,
+          }),
+        ),
       },
     });
   } catch (error) {
