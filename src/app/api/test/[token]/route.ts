@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import { withAuth } from "@/lib/auth/withAuth"
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { withAuth } from "@/lib/auth/withAuth";
 
 export const GET = withAuth(async (req, user, context) => {
-  const { token: inviteToken } = await context.params
+  const { token: inviteToken } = await context.params;
 
   const invite = await prisma.testInvite.findUnique({
     where: { token: inviteToken },
@@ -21,34 +21,31 @@ export const GET = withAuth(async (req, user, context) => {
         },
       },
     },
-  })
+  });
 
   if (!invite) {
-    return NextResponse.json(
-      { error: "Invalid invite link" },
-      { status: 404 }
-    )
+    return NextResponse.json({ error: "Invalid invite link" }, { status: 404 });
   }
 
   if (invite.email.toLowerCase() !== user.email.toLowerCase()) {
     return NextResponse.json(
       { error: "This invite was sent to a different email address" },
-      { status: 403 }
-    )
+      { status: 403 },
+    );
   }
 
   if (invite.status === "COMPLETED") {
     return NextResponse.json(
       { error: "This test has already been completed" },
-      { status: 400 }
-    )
+      { status: 400 },
+    );
   }
 
   if (new Date() > invite.expiresAt) {
     return NextResponse.json(
       { error: "This invite link has expired" },
-      { status: 400 }
-    )
+      { status: 400 },
+    );
   }
 
   return NextResponse.json({
@@ -65,21 +62,46 @@ export const GET = withAuth(async (req, user, context) => {
         tokenBudget: invite.test.tokenBudget,
         aiModel: invite.test.aiModel,
         problemCount: invite.test.problems.length,
-        problems: invite.status === "PENDING" ? [] : invite.test.problems.map((tp) => ({
-          id: tp.problem.id,
-          title: tp.problem.title,
-          description: tp.problem.description,
-          difficulty: tp.problem.difficulty,
-          tags: tp.problem.tags,
-          testCases: tp.problem.testCases
-            .filter((tc) => !tc.isHidden)
-            .map((tc) => ({
-              input: tc.input,
-              expected: tc.expected,
-            })),
-          order: tp.order,
-        })),
+        problems:
+          invite.status === "PENDING"
+            ? []
+            : invite.test.problems.map(
+                (tp: {
+                  problem: {
+                    id: string;
+                    title: string;
+                    description: string;
+                    difficulty: string;
+                    tags: unknown;
+                    testCases: {
+                      isHidden: boolean;
+                      input: string;
+                      expected: string;
+                    }[];
+                  };
+                  order: number;
+                }) => ({
+                  id: tp.problem.id,
+                  title: tp.problem.title,
+                  description: tp.problem.description,
+                  difficulty: tp.problem.difficulty,
+                  tags: tp.problem.tags,
+                  testCases: tp.problem.testCases
+                    .filter(
+                      (tc: {
+                        isHidden: boolean;
+                        input: string;
+                        expected: string;
+                      }) => !tc.isHidden,
+                    )
+                    .map((tc: { input: string; expected: string }) => ({
+                      input: tc.input,
+                      expected: tc.expected,
+                    })),
+                  order: tp.order,
+                }),
+              ),
       },
     },
-  })
-})
+  });
+});
