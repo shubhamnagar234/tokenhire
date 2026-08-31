@@ -2,6 +2,25 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
 
+interface LeaderboardSubmission {
+  id: string;
+  scoreComposite: number | null;
+  scoreCorrectness: number | null;
+  scoreTime: number | null;
+  scoreTokenSaving: number | null;
+  scoreCodeQuality: number | null;
+  timeUsedMins: number | null;
+  tokensUsed: number;
+  tokenBudget: number;
+  tokenLogs: { promptType: string; tokensUsed: number }[];
+}
+
+interface LeaderboardInvite {
+  email: string;
+  candidate: { name: string; email: string } | null;
+  submission: LeaderboardSubmission | null;
+}
+
 export const GET = withAuth(async (req, user, context) => {
   const { testId } = await context.params;
 
@@ -38,13 +57,16 @@ export const GET = withAuth(async (req, user, context) => {
   });
 
   const leaderboard = invites
-    .map((invite, index) => {
+    .map((invite: LeaderboardInvite, index: number) => {
       const sub = invite.submission;
       if (!sub) return null;
 
       // breakdown of AI usage by prompt type
       const aiUsage = sub.tokenLogs.reduce(
-        (acc, log) => {
+        (
+          acc: Record<string, number>,
+          log: { promptType: string; tokensUsed: number },
+        ) => {
           acc[log.promptType] = (acc[log.promptType] ?? 0) + log.tokensUsed;
           return acc;
         },

@@ -5,6 +5,7 @@ import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
 import { aiRateLimit } from "@/lib/rate-limit";
+import { config } from "@/lib/config";
 
 const schema = z.object({
   prompt: z.string().min(1),
@@ -93,7 +94,7 @@ export const POST = withAuth(async (req, user) => {
     // LangChain + OpenRouter call
     const llm = new ChatOpenAI({
       modelName: modelName,
-      openAIApiKey: process.env.OPENROUTER_API_KEY,
+      openAIApiKey: config.OPENROUTER_API_KEY,
       configuration: {
         baseURL: "https://openrouter.ai/api/v1",
       },

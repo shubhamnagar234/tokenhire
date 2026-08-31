@@ -84,7 +84,7 @@ export const POST = withAuth(async (req, user, context) => {
 
     // send emails asynchronously (don't block the response)
     Promise.all(
-      inviteLinks.map((invite: { id: string; email: string; link: string }) =>
+      inviteLinks.map((invite: { email: string; link: string }) =>
         sendInviteEmail(
           invite.email,
           test.title,

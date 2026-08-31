@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "motion/react";
+import {
+  motion,
+  useMotionValue,
+  useSpring,
+  useTransform,
+  useMotionTemplate,
+} from "motion/react";
 
 interface TiltCardProps {
   children: React.ReactNode;
@@ -42,6 +48,7 @@ export function TiltCard({
   // Glare effect transforms
   const glareX = useTransform(mouseXSpring, [-0.5, 0.5], ["0%", "100%"]);
   const glareY = useTransform(mouseYSpring, [-0.5, 0.5], ["0%", "100%"]);
+  const glareBackground = useMotionTemplate`radial-gradient(circle at ${glareX} ${glareY}, rgba(255, 255, 255, 0.15) 0%, transparent 80%)`;
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -89,11 +96,7 @@ export function TiltCard({
         <motion.div
           className="absolute inset-0 z-50 pointer-events-none rounded-xl"
           style={{
-            background: `radial-gradient(
-              circle at ${glareX.get()} ${glareY.get()},
-              rgba(255, 255, 255, 0.15) 0%,
-              transparent 80%
-            )`,
+            background: glareBackground,
             opacity: isHovered ? 1 : 0,
           }}
           transition={{ duration: 0.2 }}

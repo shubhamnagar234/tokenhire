@@ -5,6 +5,7 @@ import { calculateScore } from "@/lib/scoring";
 import { ChatOpenAI } from "@langchain/openai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
+import { config } from "@/lib/config";
 
 const schema = z.object({
   submissionId: z.string(),
@@ -20,7 +21,7 @@ async function getAICodeQualityScore(
   try {
     const llm = new ChatOpenAI({
       modelName: modelName,
-      openAIApiKey: process.env.OPENROUTER_API_KEY,
+      openAIApiKey: config.OPENROUTER_API_KEY,
       configuration: {
         baseURL: "https://openrouter.ai/api/v1",
       },
@@ -29,7 +30,7 @@ async function getAICodeQualityScore(
 
     const codeBlock = answers
       .map(
-        (a, i) =>
+        (a: { code: string; language: string }, i: number) =>
           `### Solution ${i + 1} (${a.language})\n\`\`\`\n${a.code.slice(0, 1500)}\n\`\`\``,
       )
       .join("\n\n");
