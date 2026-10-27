@@ -28,7 +28,7 @@ export default function NewTestPage() {
     weightTime: 0.2,
     weightTokenSaving: 0.2,
     weightCodeQuality: 0.1,
-    aiModel: "google/gemini-2.5-flash:free",
+    aiModel: "google/gemini-3.6-flash:free",
   });
 
   useEffect(() => {
@@ -193,8 +193,8 @@ export default function NewTestPage() {
               <CardContent className="space-y-3">
                 {[
                   {
-                    value: "google/gemini-2.5-flash:free",
-                    label: "Gemini 2.5 Flash",
+                    value: "google/gemini-3.6-flash:free",
+                    label: "Gemini 3.6 Flash",
                     desc: "Fast and versatile reasoning (Google)",
                     badge: "Free",
                   },

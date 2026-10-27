@@ -83,7 +83,7 @@ export const GET = withAuth(async (req, user, context) => {
     }
 
     return NextResponse.json({ test });
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 },

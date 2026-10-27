@@ -115,7 +115,7 @@ export const POST = withAuth(async (req, user) => {
     const test = submission.invite.test;
 
     // ── AI Code Quality Review ────────────────────────────────────────────────
-    const modelName = test.aiModel || "google/gemini-2.5-flash:free";
+    const modelName = test.aiModel || "google/gemini-3.6-flash:free";
     const codeQualityScore = await getAICodeQualityScore(
       submission.answers.map((a: { code: string; language: string }) => ({
         code: a.code,

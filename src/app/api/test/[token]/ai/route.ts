@@ -89,7 +89,7 @@ export const POST = withAuth(async (req, user) => {
 
     // Use the model string directly since it's now stored as the exact OpenRouter model ID
     const modelName =
-      submission.invite.test.aiModel || "google/gemini-2.5-flash:free";
+      submission.invite.test.aiModel || "google/gemini-3.6-flash:free";
 
     // LangChain + OpenRouter call
     const llm = new ChatOpenAI({
