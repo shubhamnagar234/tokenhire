@@ -1,12 +1,13 @@
 # ⚡ TokenHire: AI-Gated Technical Assessments with Token Accounting
 
-[![Next.js](https://img.shields.io/badge/Next.js-15-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0+-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS%20v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Monaco Editor](<https://img.shields.io/badge/Monaco-Editor%20(VS%20Code)-007ACC?style=for-the-badge&logo=visual-studio-code&logoColor=white>)](https://microsoft.github.io/monaco-editor/)
 [![Prisma ORM](https://img.shields.io/badge/Prisma-PostgreSQL-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
 [![LangChain](https://img.shields.io/badge/LangChain-Orchestration-1C3C3C?style=for-the-badge&logo=langchain&logoColor=white)](https://www.langchain.com/)
-[![Google Gemini](https://img.shields.io/badge/Google-Gemini%203.6%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Google Gemini](https://img.shields.io/badge/Google-Gemini%202.5%20Flash-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![Groq](https://img.shields.io/badge/Groq-LPU%20Inference-F05A28?style=for-the-badge)](https://groq.com/)
 [![Judge0](https://img.shields.io/badge/Judge0-Sandboxed%20Execution-4CAF50?style=for-the-badge)](https://judge0.com/)
 [![Upstash Redis](https://img.shields.io/badge/Upstash-Redis%20Rate%20Limiting-00E599?style=for-the-badge&logo=redis&logoColor=white)](https://upstash.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
@@ -45,7 +46,7 @@ Traditional technical hiring platforms (LeetCode, HackerRank) attempt to treat A
 
 TokenHire flips the paradigm:
 
-1. **AI is Built-In**: Every candidate has an embedded AI assistant right inside their Monaco editor (powered by **Gemini 3.6 Flash**, **Llama 3**, **Qwen 2**, or **Mistral 7B**).
+1. **AI is Built-In**: Every candidate has an embedded AI assistant right inside their Monaco editor (powered by a resilient multi-tier fallback pipeline: **Gemini 2.5 Flash**, **Groq Qwen/Llama**, and **OpenRouter**).
 2. **Fixed Token Budget**: Every candidate receives a predetermined token pool (e.g., 2,500 tokens).
 3. **Strategic Intent**: Candidates can request `HINT`, `EXPLAIN`, `DEBUG`, `OPTIMIZE`, or `GENERATE`. Every query atomically deducts tokens from their budget based on exact usage metadata.
 4. **Hiring Signal**: Candidates who craft precise, high-signal prompts preserve their budget and achieve higher scores; candidates who blindly paste code exhaust their tokens early.
@@ -57,7 +58,7 @@ TokenHire flips the paradigm:
 ```
                                   ┌──────────────────────────────────────────────┐
                                   │           Candidate Assessment Client        │
-                                  │   (Next.js 15 + Monaco VS Code Editor)       │
+                                  │   (Next.js 16 + Monaco VS Code Editor)       │
                                   │   - Real-time Token Budget HUD               │
                                   │   - In-Editor AI Prompt Menu                 │
                                   │   - Test Runner & Split Pane Layout          │
@@ -67,7 +68,7 @@ TokenHire flips the paradigm:
                                                          ▼
                                   ┌──────────────────────────────────────────────┐
                                   │           TokenHire API & Security Layer     │
-                                  │  - Upstash Redis Rate Limiting               │
+                                  │  - Upstash Redis Rate Limiting (Fail-Open)   │
                                   │  - Token Invite Authentication (cuid)        │
                                   │  - Atomic Token Deduction Transaction        │
                                   └──────────┬────────────────────────┬──────────┘
@@ -75,11 +76,12 @@ TokenHire flips the paradigm:
                     ┌────────────────────────┴────────┐      ┌────────┴────────────────────────┐
                     ▼                                 ▼      ▼                                 ▼
       ┌──────────────────────────┐      ┌──────────────────────────┐      ┌──────────────────────────┐
-      │  AI Assistance Pipeline  │      │  Remote Code Execution   │      │   Database & Analytics   │
+      │  AI Multi-Tier Pipeline  │      │  Remote Code Execution   │      │   Database & Analytics   │
       │  - LangChain Core        │      │  - Judge0 Sandbox Engine │      │  - Prisma ORM            │
-      │  - Gemini 3.6 Flash      │      │  - Multi-language Tests  │      │  - PostgreSQL (Neon)     │
-      │  - OpenRouter API        │      │    (JS/TS/Python/Java/C) │      │  - Full Audit Token Logs │
-      │  - Exact Token Accounting│      │  - Hidden Test Cases     │      │  - Recruiter Leaderboard │
+      │  - 1°: Gemini 2.5 Flash  │      │  - RapidAPI -> Public CE │      │  - PostgreSQL (Neon)     │
+      │  - 2°: Groq LPU (Qwen)   │      │  - Multi-language Tests  │      │  - Full Audit Token Logs │
+      │  - 3°: OpenRouter API    │      │  - Hidden Test Cases     │      │  - Recruiter Leaderboard │
+      │  - Atomic Accounting     │      │    (JS/TS/Python/Java/C) │      │                          │
       └──────────────────────────┘      └──────────────────────────┘      └──────────────────────────┘
 ```
 
@@ -89,7 +91,7 @@ TokenHire flips the paradigm:
 
 ### For Recruiters & Engineering Hiring Managers
 
-- **📋 Custom Test Studio**: Create customized assessments with configurable time limits, difficulty, token budget allocations, and custom AI models (including **Gemini 3.6 Flash**).
+- **📋 Custom Test Studio**: Create customized assessments with configurable time limits, difficulty, token budget allocations, and custom AI models (including **Gemini 2.5 Flash**, **Groq Qwen**, **Groq GPT-OSS**, and **OpenRouter**).
 - **⚖️ Dynamic Scoring Weights**: Tailor the composite evaluation formula per role (e.g., weight token efficiency higher for senior roles, correctness higher for juniors).
 - **✉️ Automated Candidate Invites**: Send unique, single-use, time-expiring assessment invitation links via **Resend**.
 - **📊 Real-Time Interactive Leaderboard**: Instant candidate rankings sorted by composite score, with granular breakdowns of correctness, time taken, and tokens conserved.
@@ -131,20 +133,20 @@ A candidate who finishes in 20 minutes with 100% test cases passed using **300 t
 
 ## 🛠 Tech Stack
 
-| Domain                    | Technology / Library                                                                                                     | Purpose                                                                    |
-| :------------------------ | :----------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------- |
-| **Full-Stack Framework**  | [Next.js 15](https://nextjs.org/)                                                                                        | React 19 App Router, API route handlers & Server Components                |
-| **Language**              | [TypeScript](https://www.typescriptlang.org/)                                                                            | End-to-end static typing across database schemas, APIs, and UI             |
-| **Code Editor**           | [@monaco-editor/react](https://github.com/suren-atoyan/monaco-react)                                                     | Full VS Code browser editing experience with language services             |
-| **AI Orchestration**      | [LangChain](https://www.langchain.com/)                                                                                  | Unified abstraction for prompt templates and streaming responses           |
-| **AI Models**             | [Google Gemini 3.6 Flash](https://ai.google.dev/), [OpenRouter](https://openrouter.ai/)                                  | High-speed, cost-effective reasoning via Gemini 3.6 Flash, Llama 3, Qwen 2 |
-| **Code Execution Engine** | [Judge0 API](https://judge0.com/)                                                                                        | Secure, isolated remote sandboxed compiler & test runner                   |
-| **Database & ORM**        | [PostgreSQL](https://www.postgresql.org/), [Prisma ORM](https://www.prisma.io/)                                          | Type-safe relational database management with migrations                   |
-| **State & Query Cache**   | [TanStack React Query v5](https://tanstack.com/query), [Zustand](https://zustand.docs.pmnd.rs/)                          | Asynchronous server-state synchronization & global client state            |
-| **Rate Limiting**         | [Upstash Redis](https://upstash.com/), [@upstash/ratelimit](https://github.com/upstash/ratelimit)                        | Distributed sliding-window rate limiting on assessment routes              |
-| **Authentication**        | [Jose](https://github.com/panva/jose), [Bcryptjs](https://github.com/dcodeIO/bcrypt.js)                                  | Secure stateless JWT sessions & salted password hashing                    |
-| **Email Delivery**        | [Resend](https://resend.com/)                                                                                            | Transactional emails and candidate assessment invitations                  |
-| **Styling & Motion**      | [Tailwind CSS v4](https://tailwindcss.com/), [Framer Motion](https://motion.dev/), [Radix UI](https://www.radix-ui.com/) | Fluid modern dark UI, aurora backgrounds, tilt cards, and dock navigation  |
+| Domain                    | Technology / Library                                                                                                     | Purpose                                                                      |
+| :------------------------ | :----------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------- |
+| **Full-Stack Framework**  | [Next.js 16](https://nextjs.org/)                                                                                        | React 19 App Router (Turbopack), API route handlers & Server Components      |
+| **Language**              | [TypeScript](https://www.typescriptlang.org/)                                                                            | End-to-end static typing across database schemas, APIs, and UI               |
+| **Code Editor**           | [@monaco-editor/react](https://github.com/suren-atoyan/monaco-react)                                                     | Full VS Code browser editing experience with language services               |
+| **AI Orchestration**      | [LangChain](https://www.langchain.com/)                                                                                  | Unified abstraction for prompt templates and multi-tier model cascading      |
+| **AI Models**             | [Google Gemini](https://ai.google.dev/), [Groq LPU](https://groq.com/), [OpenRouter](https://openrouter.ai/)             | Ultra-low latency reasoning via Gemini 2.5 Flash, Groq Qwen, and OpenRouter  |
+| **Code Execution Engine** | [Judge0 API](https://judge0.com/)                                                                                        | Sandboxed compiler & test runner with automatic failover to Judge0 Public CE |
+| **Database & ORM**        | [PostgreSQL](https://www.postgresql.org/), [Prisma ORM](https://www.prisma.io/)                                          | Type-safe relational database management with migrations                     |
+| **State & Query Cache**   | [TanStack React Query v5](https://tanstack.com/query), [Zustand](https://zustand.docs.pmnd.rs/)                          | Asynchronous server-state synchronization & global client state              |
+| **Rate Limiting**         | [Upstash Redis](https://upstash.com/), [@upstash/ratelimit](https://github.com/upstash/ratelimit)                        | Distributed sliding-window rate limiting on assessment routes                |
+| **Authentication**        | [Jose](https://github.com/panva/jose), [Bcryptjs](https://github.com/dcodeIO/bcrypt.js)                                  | Secure stateless JWT sessions & salted password hashing                      |
+| **Email Delivery**        | [Resend](https://resend.com/)                                                                                            | Transactional emails and candidate assessment invitations                    |
+| **Styling & Motion**      | [Tailwind CSS v4](https://tailwindcss.com/), [Framer Motion](https://motion.dev/), [Radix UI](https://www.radix-ui.com/) | Fluid modern dark UI, aurora backgrounds, tilt cards, and dock navigation    |
 
 ---
 
@@ -171,7 +173,7 @@ The relational schema (`prisma/schema.prisma`) coordinates the assessment ecosys
 
 ### Key Models:
 
-- **`Test`**: Defines assessment configuration, duration, scoring weights, and designated `aiModel` (defaults to `google/gemini-3.6-flash:free`).
+- **`Test`**: Defines assessment configuration, duration, scoring weights, and designated `aiModel` (defaults to `gemini-2.5-flash`).
 - **`TestInvite`**: Unique cryptographic token (`cuid`) granting candidate access with expiration timestamps.
 - **`Submission`**: Captures time taken, total tokens used, sub-scores, and composite rating.
 - **`TokenLog`**: Records each prompt type (`HINT`, `EXPLAIN`, `DEBUG`, `OPTIMIZE`, `GENERATE`), user prompt, AI response, and exact tokens deducted.
@@ -218,6 +220,7 @@ JWT_SECRET="your_secure_jwt_random_secret"
 
 # AI Provider Keys
 GEMINI_API_KEY="your_google_gemini_api_key"
+GROQ_API_KEY="your_groq_api_key"
 OPENROUTER_API_KEY="your_openrouter_api_key"
 
 # Judge0 Remote Code Execution Engine
@@ -245,6 +248,14 @@ npm run dev
 ```
 
 Visit [http://localhost:3000](http://localhost:3000) to access the platform.
+
+### 7. Run Complete E2E Verification Benchmark
+
+```bash
+npm run test:e2e
+```
+
+Runs an automated end-to-end simulation across recruiter test creation, candidate invite generation, AI hint prompting with token deduction, Judge0 code execution, and 4-factor composite scoring.
 
 ---
 
