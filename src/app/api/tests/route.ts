@@ -13,7 +13,7 @@ const schema = z
     weightTime: z.number().default(0.2),
     weightTokenSaving: z.number().default(0.2),
     weightCodeQuality: z.number().default(0.1),
-    aiModel: z.string().default("google/gemini-3.6-flash:free"),
+    aiModel: z.string().default("gemini-2.5-flash"),
   })
   .refine(
     (d) =>

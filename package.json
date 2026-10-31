@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "prisma generate && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:e2e": "npx tsx --env-file=.env benchmarks/run-e2e-test.ts",
+    "benchmark": "npx tsx --env-file=.env benchmarks/run-benchmarks.ts"
   },
   "dependencies": {
     "@langchain/core": "^1.1.48",

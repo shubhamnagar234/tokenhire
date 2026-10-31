@@ -30,3 +30,26 @@ export const submitRateLimit = redis
       prefix: "@upstash/ratelimit/submit",
     })
   : null
+
+/**
+ * Resilient rate-limit check with fail-open behavior.
+ * If Redis is unreachable or has DNS failure, logs warning and allows request through
+ * so caching outages do not block active candidate assessments.
+ */
+export async function checkRateLimit(
+  limiter: Ratelimit | null,
+  identifier: string,
+): Promise<{ success: boolean }> {
+  if (!limiter) return { success: true };
+  try {
+    const res = await limiter.limit(identifier);
+    return { success: res.success };
+  } catch (err: unknown) {
+    console.warn(
+      "[RateLimit Warning] Redis unreachable, failing open:",
+      (err as Error).message,
+    );
+    return { success: true };
+  }
+}
+

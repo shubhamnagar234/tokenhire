@@ -1,11 +1,10 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
-import { ChatOpenAI } from "@langchain/openai";
+import { executeWithFallback } from "@/lib/ai";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { z } from "zod";
-import { aiRateLimit } from "@/lib/rate-limit";
-import { config } from "@/lib/config";
+import { aiRateLimit, checkRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   prompt: z.string().min(1),
@@ -29,18 +28,11 @@ export const POST = withAuth(async (req, user) => {
     const body = await req.json();
     const { prompt, promptType, problemId, submissionId } = schema.parse(body);
 
-    if (aiRateLimit) {
-      const { success } = await aiRateLimit.limit(user.userId);
-      if (!success) {
-        return NextResponse.json(
-          { error: "Too many AI requests. Please slow down." },
-          { status: 429 },
-        );
-      }
-    } else if (process.env.NODE_ENV === "production") {
+    const { success } = await checkRateLimit(aiRateLimit, user.userId);
+    if (!success) {
       return NextResponse.json(
-        { error: "Rate limiting is required in production." },
-        { status: 500 },
+        { error: "Too many AI requests. Please slow down." },
+        { status: 429 },
       );
     }
 
@@ -87,22 +79,7 @@ export const POST = withAuth(async (req, user) => {
       );
     }
 
-    // Use the model string directly since it's now stored as the exact OpenRouter model ID
-    const modelName =
-      submission.invite.test.aiModel || "google/gemini-3.6-flash:free";
-
-    // LangChain + OpenRouter call
-    const llm = new ChatOpenAI({
-      modelName: modelName,
-      openAIApiKey: config.OPENROUTER_API_KEY,
-      configuration: {
-        baseURL: "https://openrouter.ai/api/v1",
-      },
-      maxTokens: Math.min(500, tokensRemaining),
-    });
-
     const systemPrompt = SYSTEM_PROMPTS[promptType] ?? SYSTEM_PROMPTS.HINT;
-
     const messages = [
       new SystemMessage(
         `You are a coding assistant during a technical assessment. ${systemPrompt}`,
@@ -110,16 +87,15 @@ export const POST = withAuth(async (req, user) => {
       new HumanMessage(prompt),
     ];
 
-    const aiResult = await llm.invoke(messages);
-    const aiResponse = aiResult.content as string;
+    // Multi-tier execution: Primary (Gemini) -> 1st Fallback (Groq) -> 2nd Fallback (OpenRouter)
+    const aiResult = await executeWithFallback({
+      messages,
+      maxTokens: Math.min(500, tokensRemaining),
+      userPrompt: prompt,
+    });
 
-    // Use actual token count from Gemini's usage metadata (prompt + output tokens).
-    // LangChain exposes this as usage_metadata.total_tokens on AIMessageChunk.
-    // Fall back to the character heuristic only if metadata is unavailable.
-    const actualTokens =
-      aiResult.usage_metadata?.total_tokens ??
-      Math.ceil((prompt.length + aiResponse.length) / 4);
-    const tokensToDeduct = Math.min(actualTokens, tokensRemaining);
+    const aiResponse = aiResult.content;
+    const tokensToDeduct = Math.min(aiResult.tokensUsed, tokensRemaining);
 
     // deduct tokens + log atomically
     await prisma.$transaction([
@@ -148,14 +124,15 @@ export const POST = withAuth(async (req, user) => {
       tokensRemaining: submission.tokenBudget - newTokensUsed,
       totalTokensUsed: newTokensUsed,
       tokenBudget: submission.tokenBudget,
+      provider: aiResult.provider,
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 422 });
     }
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    console.error("[AI Route Error]:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }, "CANDIDATE");

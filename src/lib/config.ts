@@ -14,6 +14,7 @@ const configSchema = z.object({
   NEXT_PUBLIC_APP_URL: z.string().url().optional(),
   RESEND_API_KEY: z.string().min(1).optional(),
   OPENROUTER_API_KEY: z.string().min(1).optional(),
+  GROQ_API_KEY: z.string().min(1).optional(),
 });
 
 export const config = configSchema.parse({
@@ -28,4 +29,5 @@ export const config = configSchema.parse({
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   RESEND_API_KEY: process.env.RESEND_API_KEY,
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+  GROQ_API_KEY: process.env.GROQ_API_KEY,
 });

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/auth/withAuth";
 import { z } from "zod";
-import { submitRateLimit } from "@/lib/rate-limit";
+import { submitRateLimit, checkRateLimit } from "@/lib/rate-limit";
 
 const schema = z.object({
   submissionId: z.string(),
@@ -28,45 +28,77 @@ async function executeCode(
   input: string,
   expectedOutput: string,
 ): Promise<{ passed: boolean; actual: string; error?: string }> {
-  // submit to Judge0
-  const submitRes = await fetch(
-    `${process.env.JUDGE0_API_URL}/submissions?base64_encoded=false&wait=false`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-RapidAPI-Key": process.env.JUDGE0_API_KEY!,
-        "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
-      },
-      body: JSON.stringify({
-        source_code: code,
-        language_id: LANGUAGE_IDS[language],
-        stdin: input,
-        expected_output: expectedOutput,
-      }),
-    },
-  );
+  const languageId = LANGUAGE_IDS[language];
+  const payload = {
+    source_code: code,
+    language_id: languageId,
+    stdin: input,
+    expected_output: expectedOutput,
+  };
 
-  if (!submitRes.ok) {
-    throw new Error(
-      `Judge0 submission failed: ${submitRes.status} ${submitRes.statusText}`,
-    );
+  // 1. Try Primary Judge0 endpoint (e.g. RapidAPI or custom self-hosted)
+  let token: string | null = null;
+  let baseUrl = process.env.JUDGE0_API_URL || "https://ce.judge0.com";
+  let headers: Record<string, string> = { "Content-Type": "application/json" };
+
+  if (process.env.JUDGE0_API_KEY) {
+    headers["X-RapidAPI-Key"] = process.env.JUDGE0_API_KEY;
+    headers["X-RapidAPI-Host"] = "judge0-ce.p.rapidapi.com";
   }
 
-  const { token } = await submitRes.json();
+  try {
+    const submitRes = await fetch(
+      `${baseUrl}/submissions?base64_encoded=false&wait=false`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      },
+    );
 
-  // poll for result
+    if (submitRes.ok) {
+      const data = await submitRes.json();
+      token = data.token;
+    } else {
+      console.warn(
+        `[Judge0 Primary Failed] Status ${submitRes.status}: ${submitRes.statusText}. Trying public fallback (https://ce.judge0.com)...`,
+      );
+    }
+  } catch (err: unknown) {
+    console.warn("[Judge0 Primary Network Error]:", (err as Error).message);
+  }
+
+  // 2. Fallback to public Judge0 if primary failed or returned 401/403/500
+  if (!token) {
+    baseUrl = "https://ce.judge0.com";
+    headers = { "Content-Type": "application/json" };
+
+    const fallbackRes = await fetch(
+      `${baseUrl}/submissions?base64_encoded=false&wait=false`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      },
+    );
+
+    if (!fallbackRes.ok) {
+      throw new Error(
+        `Judge0 submission failed on both primary and fallback: ${fallbackRes.status} ${fallbackRes.statusText}`,
+      );
+    }
+
+    const data = await fallbackRes.json();
+    token = data.token;
+  }
+
+  // 3. Poll for result
   let result = null;
   for (let i = 0; i < 10; i++) {
     await sleep(1000);
     const resultRes = await fetch(
-      `${process.env.JUDGE0_API_URL}/submissions/${token}?base64_encoded=false`,
-      {
-        headers: {
-          "X-RapidAPI-Key": process.env.JUDGE0_API_KEY!,
-          "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
-        },
-      },
+      `${baseUrl}/submissions/${token}?base64_encoded=false`,
+      { headers },
     );
     if (!resultRes.ok) {
       throw new Error(
@@ -74,7 +106,7 @@ async function executeCode(
       );
     }
     result = await resultRes.json();
-    // status 1=queued, 2=processing, 3=accepted
+    // status 1=queued, 2=processing, 3=accepted, etc.
     if (result.status?.id > 2) break;
   }
 
@@ -105,18 +137,11 @@ export const POST = withAuth(async (req, user) => {
     const body = typeof raw === "string" ? JSON.parse(raw) : raw;
     const { submissionId, problemId, code, language } = schema.parse(body);
 
-    if (submitRateLimit) {
-      const { success } = await submitRateLimit.limit(user.userId);
-      if (!success) {
-        return NextResponse.json(
-          { error: "Too many code executions. Please slow down." },
-          { status: 429 },
-        );
-      }
-    } else if (process.env.NODE_ENV === "production") {
+    const { success } = await checkRateLimit(submitRateLimit, user.userId);
+    if (!success) {
       return NextResponse.json(
-        { error: "Rate limiting is required in production." },
-        { status: 500 },
+        { error: "Too many code executions. Please slow down." },
+        { status: 429 },
       );
     }
 
@@ -220,12 +245,15 @@ export const POST = withAuth(async (req, user) => {
         ),
       },
     });
-  } catch (error) {
+  } catch (error: unknown) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ error: error.issues }, { status: 422 });
     }
+    console.error("[Submit Route Error]:", error);
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: message },
       { status: 500 },
     );
   }

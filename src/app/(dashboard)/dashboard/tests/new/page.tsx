@@ -28,7 +28,7 @@ export default function NewTestPage() {
     weightTime: 0.2,
     weightTokenSaving: 0.2,
     weightCodeQuality: 0.1,
-    aiModel: "google/gemini-3.6-flash:free",
+    aiModel: "gemini-2.5-flash",
   });
 
   useEffect(() => {
@@ -193,28 +193,28 @@ export default function NewTestPage() {
               <CardContent className="space-y-3">
                 {[
                   {
-                    value: "google/gemini-3.6-flash:free",
-                    label: "Gemini 3.6 Flash",
-                    desc: "Fast and versatile reasoning (Google)",
-                    badge: "Free",
+                    value: "gemini-2.5-flash",
+                    label: "Gemini 2.5 Flash",
+                    desc: "Primary: Fast and versatile reasoning (Google AI Studio)",
+                    badge: "Primary",
                   },
                   {
-                    value: "meta-llama/llama-3-8b-instruct:free",
-                    label: "Llama 3 8B",
-                    desc: "Excellent open-weight model (Meta)",
-                    badge: "Free",
+                    value: "groq/qwen3.8-27b",
+                    label: "Groq Qwen 3.8 27B",
+                    desc: "1st Fallback: Ultra-low latency inference (Groq)",
+                    badge: "1st Fallback",
                   },
                   {
-                    value: "qwen/qwen-2-72b-instruct:free",
-                    label: "Qwen 2 72B",
-                    desc: "Massive scale and intelligence (Alibaba)",
-                    badge: "Free",
+                    value: "groq/gpt-oss-120b",
+                    label: "Groq GPT OSS 120B",
+                    desc: "High-capacity reasoning engine (Groq)",
+                    badge: "Groq",
                   },
                   {
-                    value: "mistralai/mistral-7b-instruct:free",
-                    label: "Mistral 7B",
-                    desc: "Highly efficient reasoning (Mistral AI)",
-                    badge: "Free",
+                    value: "openrouter/gemini-2.5-flash",
+                    label: "OpenRouter Gemini Flash",
+                    desc: "Last Fallback: Multi-provider global routing (OpenRouter)",
+                    badge: "Last Fallback",
                   },
                 ].map((model) => (
                   <button
