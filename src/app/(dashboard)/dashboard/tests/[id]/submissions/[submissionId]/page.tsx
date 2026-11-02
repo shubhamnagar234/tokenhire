@@ -85,16 +85,16 @@ export default function SubmissionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const hydrated = useHydrated();
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
 
   const testId = params.id as string;
   const submissionId = params.submissionId as string;
   const [activeProb, setActiveProb] = useState(0);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isInitialized) return;
     if (!user || user?.role !== "RECRUITER") router.push("/login");
-  }, [hydrated, user, router]);
+  }, [hydrated, isInitialized, user, router]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["submission-detail", submissionId],
@@ -102,7 +102,7 @@ export default function SubmissionDetailPage() {
       apiRequest<{ submission: SubmissionDetail }>(
         `/api/tests/${testId}/submissions/${submissionId}`,
       ),
-    enabled: !!user,
+    enabled: !!user && isInitialized,
   });
 
   if (!hydrated || isLoading) {

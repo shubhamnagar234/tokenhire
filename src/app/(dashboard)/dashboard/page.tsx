@@ -69,23 +69,23 @@ const STATUS_STYLE: Record<string, string> = {
 export default function DashboardPage() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { user, clearAuth } = useAuthStore();
+  const { user, clearAuth, isInitialized } = useAuthStore();
   const queryClient = useQueryClient();
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isInitialized) return;
     if (!user || user?.role !== "RECRUITER") {
       router.push("/login");
     }
-  }, [hydrated, user, router]);
+  }, [hydrated, isInitialized, user, router]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["tests", page],
     queryFn: () =>
       apiRequest<TestsResponse>(`/api/tests?page=${page}&limit=10`),
-    enabled: !!user,
+    enabled: !!user && isInitialized,
     refetchInterval: 10000,
   });
 

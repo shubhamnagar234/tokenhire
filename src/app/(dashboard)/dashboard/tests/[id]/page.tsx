@@ -81,7 +81,7 @@ export default function TestDetailPage() {
   const params = useParams();
   const router = useRouter();
   const hydrated = useHydrated();
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
   const queryClient = useQueryClient();
   const testId = params.id as string;
 
@@ -95,11 +95,11 @@ export default function TestDetailPage() {
   const prevCountRef = useRef(0);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isInitialized) return;
     if (!user || user?.role !== "RECRUITER") {
       router.push("/login");
     }
-  }, [hydrated, user, router]);
+  }, [hydrated, isInitialized, user, router]);
 
   // Leaderboard query
   const { data, isLoading } = useQuery({

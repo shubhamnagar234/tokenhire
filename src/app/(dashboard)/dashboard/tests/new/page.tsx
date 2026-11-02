@@ -17,7 +17,7 @@ import { motion } from "motion/react";
 export default function NewTestPage() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -32,11 +32,11 @@ export default function NewTestPage() {
   });
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isInitialized) return;
     if (!user || user?.role !== "RECRUITER") {
       router.push("/login");
     }
-  }, [hydrated, user, router]);
+  }, [hydrated, isInitialized, user, router]);
 
   const handleCreateTest = async (e: React.FormEvent) => {
     e.preventDefault();

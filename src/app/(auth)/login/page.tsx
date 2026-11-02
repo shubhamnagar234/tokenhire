@@ -52,7 +52,12 @@ export default function LoginPage() {
         description: `Logged in as ${data.user.name}`,
       });
 
-      if (data.user.role === "RECRUITER") {
+      const searchParams = new URLSearchParams(window.location.search);
+      const redirect = searchParams.get("redirect");
+
+      if (redirect && redirect.startsWith("/")) {
+        router.push(redirect);
+      } else if (data.user.role === "RECRUITER") {
         router.push("/dashboard");
       } else {
         router.push("/candidate");

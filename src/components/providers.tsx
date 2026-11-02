@@ -9,6 +9,8 @@ import { useQuery } from "@tanstack/react-query";
 
 function AuthInit() {
   const setAuth = useAuthStore((state) => state.setAuth);
+  const clearAuth = useAuthStore((state) => state.clearAuth);
+  const setInitialized = useAuthStore((state) => state.setInitialized);
 
   useQuery({
     queryKey: ["auth-me"],
@@ -18,15 +20,18 @@ function AuthInit() {
         setAuth(data.user);
         return data.user;
       } catch (err) {
+        clearAuth();
         // Expected for unauthenticated users (no cookie / expired token).
         // Log unexpected errors in dev to surface misconfigurations.
         if (process.env.NODE_ENV === "development") {
           console.warn("[AuthInit] /api/auth/me failed:", err);
         }
         return null;
+      } finally {
+        setInitialized(true);
       }
     },
-    staleTime: Infinity,
+    staleTime: 5 * 60 * 1000,
     retry: false,
   });
 

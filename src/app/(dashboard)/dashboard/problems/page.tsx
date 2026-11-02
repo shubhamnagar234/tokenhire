@@ -56,7 +56,7 @@ const EMPTY_FORM = {
 export default function ProblemsPage() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
   const queryClient = useQueryClient();
 
   const [showForm, setShowForm] = useState(false);
@@ -64,14 +64,14 @@ export default function ProblemsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isInitialized) return;
     if (!user || user?.role !== "RECRUITER") router.push("/login");
-  }, [hydrated, user, router]);
+  }, [hydrated, isInitialized, user, router]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["problems"],
     queryFn: () => apiRequest<{ problems: Problem[] }>("/api/problems"),
-    enabled: !!user,
+    enabled: !!user && isInitialized,
   });
 
   // ── Test cases helpers ────────────────────────────────────────────────────

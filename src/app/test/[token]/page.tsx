@@ -80,7 +80,7 @@ const PROMPT_TYPES = [
 export default function TestPage() {
   const params = useParams();
   const router = useRouter();
-  const { user } = useAuthStore();
+  const { user, isInitialized } = useAuthStore();
   const queryClient = useQueryClient();
 
   const [testData, setTestData] = useState<TestData | null>(null);
@@ -163,7 +163,7 @@ export default function TestPage() {
         initialTimeLeft: Math.max(0, totalSecs - elapsed),
       };
     },
-    enabled: !!user && hydrated && user.role === "CANDIDATE",
+    enabled: !!user && hydrated && isInitialized && user.role === "CANDIDATE",
     staleTime: Infinity,
     retry: false,
     refetchOnWindowFocus: false,
@@ -171,8 +171,8 @@ export default function TestPage() {
 
   // Sync query data to local state
   useEffect(() => {
-    if (fetchPayload && !testData) {
-      Promise.resolve().then(() => {
+    if (fetchPayload) {
+      queueMicrotask(() => {
         setTestData(fetchPayload.testData);
         if (fetchPayload.submission) {
           setSubmission(fetchPayload.submission);
@@ -182,15 +182,21 @@ export default function TestPage() {
         setLoading(false);
       });
     }
-  }, [fetchPayload, testData]);
+  }, [fetchPayload]);
 
-  // check auth first
+  // check auth first — wait for hydration AND auth initialization
   useEffect(() => {
-    if (hydrated && user?.role !== "CANDIDATE" && !isLoading) {
-      if (!user) router.push("/login");
-      else router.push("/dashboard");
+    if (!hydrated || !isInitialized) return;
+
+    if (!user) {
+      router.push(`/login?redirect=/test/${inviteToken}`);
+      return;
     }
-  }, [hydrated, user, router, isLoading]);
+
+    if (user.role !== "CANDIDATE") {
+      router.push("/dashboard");
+    }
+  }, [hydrated, isInitialized, user, router, inviteToken]);
 
   // countdown timer — starts only when submission exists and timeLeft is set
   useEffect(() => {
@@ -223,14 +229,37 @@ export default function TestPage() {
   const handleStartTest = async () => {
     setStarting(true);
     try {
-      await apiRequest(`/api/test/${inviteToken}/start`, { method: "POST" });
-      // Reset local state so it re-syncs with the fresh fetch
-      setTestData(null);
-      await queryClient.invalidateQueries({
-        queryKey: ["test-data", inviteToken],
+      const subRes = await apiRequest<{ submission: Submission }>(
+        `/api/test/${inviteToken}/start`,
+        { method: "POST" },
+      );
+
+      // Fetch fresh test data now that status is ACCEPTED (returns problems array)
+      const freshData = await apiRequest<TestData>(`/api/test/${inviteToken}`);
+
+      const elapsed = Math.floor(
+        (Date.now() - new Date(subRes.submission.startedAt).getTime()) / 1000,
+      );
+      const totalSecs = freshData.invite.test.timeLimitMins * 60;
+      const initialTimeLeft = Math.max(0, totalSecs - elapsed);
+
+      // Update React Query cache
+      queryClient.setQueryData(["test-data", inviteToken], {
+        testData: freshData,
+        submission: subRes.submission,
+        initialTimeLeft,
       });
+
+      // Update local state directly so the editor renders instantly
+      setTestData(freshData);
+      setSubmission(subRes.submission);
+      setTokensUsed(subRes.submission.tokensUsed);
+      setTimeLeft(initialTimeLeft);
+      setLoading(false);
+      toast.success("Assessment started! Good luck.");
     } catch (err: unknown) {
       toast.error((err as Error).message);
+    } finally {
       setStarting(false);
     }
   };
@@ -324,7 +353,7 @@ export default function TestPage() {
     );
   }
 
-  if (loading || isLoading) {
+  if (!hydrated || !isInitialized || loading || (isLoading && !testData)) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <header className="px-6 py-4 flex items-center justify-between border-b border-border">
@@ -424,7 +453,7 @@ export default function TestPage() {
   }
 
   // TEST INTERFACE (Test in progress)
-  const problem = test.problems[activeProblem];
+  const problem = test.problems?.[activeProblem] || null;
   // Guard against undefined submission during transition
   const tokenPct = submission
     ? Math.round((tokensUsed / submission.tokenBudget) * 100)

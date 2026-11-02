@@ -46,23 +46,23 @@ const INVITE_STATUS_STYLE: Record<string, string> = {
 export default function CandidateDashboardPage() {
   const router = useRouter();
   const hydrated = useHydrated();
-  const { user, clearAuth } = useAuthStore();
+  const { user, clearAuth, isInitialized } = useAuthStore();
 
   useEffect(() => {
-    if (!hydrated) return;
+    if (!hydrated || !isInitialized) return;
     if (!user || user.role !== "CANDIDATE") {
       router.push("/login");
     }
-  }, [hydrated, user, router]);
+  }, [hydrated, isInitialized, user, router]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["candidate-tests"],
     queryFn: () =>
       apiRequest<{ invites: CandidateTest[] }>("/api/candidate/tests"),
-    enabled: !!user && user.role === "CANDIDATE",
+    enabled: !!user && isInitialized && user.role === "CANDIDATE",
   });
 
-  if (!hydrated || isLoading) {
+  if (!hydrated || !isInitialized || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <p className="text-muted-foreground">Loading dashboard...</p>
